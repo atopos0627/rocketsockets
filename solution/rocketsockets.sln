@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{094EEDCF-3029-46E9-A492-51BCE90A6F05}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2F0D1B6B-8A34-4641-800D-E8574D6D430E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rocketsockets.test", "..\tests\rocketsockets.test\rocketsockets.test.csproj", "{8BA98D4C-16B1-42C3-9F58-A4700366A685}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rocketsockets", "..\src\rocketsockets\rocketsockets.csproj", "{F00115B6-08B9-474B-93FD-F6BD619C5054}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BA98D4C-16B1-42C3-9F58-A4700366A685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BA98D4C-16B1-42C3-9F58-A4700366A685}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BA98D4C-16B1-42C3-9F58-A4700366A685}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BA98D4C-16B1-42C3-9F58-A4700366A685}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F00115B6-08B9-474B-93FD-F6BD619C5054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F00115B6-08B9-474B-93FD-F6BD619C5054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F00115B6-08B9-474B-93FD-F6BD619C5054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F00115B6-08B9-474B-93FD-F6BD619C5054}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F00115B6-08B9-474B-93FD-F6BD619C5054} = {094EEDCF-3029-46E9-A492-51BCE90A6F05}
+		{8BA98D4C-16B1-42C3-9F58-A4700366A685} = {2F0D1B6B-8A34-4641-800D-E8574D6D430E}
+	EndGlobalSection
+EndGlobal
