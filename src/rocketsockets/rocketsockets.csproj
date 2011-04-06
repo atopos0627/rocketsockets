@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Symbiote.Core">
+      <HintPath>..\..\lib\Symbiote.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -56,6 +59,7 @@
     <Compile Include="Impl\MailboxProcessor.cs" />
     <Compile Include="Impl\SocketEventLoop.cs" />
     <Compile Include="ISocket.cs" />
+    <Compile Include="ISocketHandle.cs" />
     <Compile Include="ISocketServer.cs" />
     <Compile Include="Impl\LoopNode.cs" />
     <Compile Include="Impl\MailboxNode.cs" />

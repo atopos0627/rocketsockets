@@ -5,32 +5,24 @@ namespace rocketsockets
 {
     public class SocketNode :
         LoopNode<SocketNode>,
-        ISocket
+        ISocketHandle
     {
+        public string Id { get; set; }
         public bool Available { get; set; }
-        public bool PendingRead { get; protected set; }
-        public bool PendingWrite { get; protected set; }		
-        public ConcurrentQueue<Tuple<Action<ArraySegment<byte>>, Action<Exception>>> ReadQueue { get; set; }
-        public ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>> WriteQueue { get; set; }
         public ISocket Connection { get; set; }
+        public bool PendingRead { get; set; }
+        public bool PendingWrite { get; set; }
+        public OnBytesReceived OnBytes { get; set; }
         public object OperationLock { get; set; }
-		
+        public ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>> ReadQueue { get; set; }
+        public ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>> WriteQueue { get; set; }
+
         public void Close() 
         {
             Remove();
             Connection.Close();
         }
 
-        public void Read( Action<ArraySegment<byte>> onBytes, Action<Exception> onException )
-        {
-            ReadQueue.Enqueue( Tuple.Create( onBytes, onException ) );
-        }
-		
-        public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
-        {
-            WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
-        }
-		
         public bool ExecuteNextRead()
         {
             var readExecuted = false;
@@ -39,13 +31,13 @@ namespace rocketsockets
                 if( Available && ReadQueue.Count > 0 )
                 {
                     Available = false;
-                    Tuple<Action<ArraySegment<byte>>, Action<Exception>> read = null;
+                    Tuple<OnBytesReceived, Action<Exception>> read = null;
                     if( ReadQueue.TryDequeue( out read ) )
                     {
                         Connection.Read( 
                             x => {
                                      Available = true;
-                                     read.Item1( x );
+                                     read.Item1( Id, x );
                             },
                             x => {
                                      Available = true;
@@ -85,9 +77,26 @@ namespace rocketsockets
             }
             return writeExecuted;
         }
-				
-        public SocketNode( ISocket socket )
+
+        public void HandleReadException( Exception exception ) 
         {
+
+        }
+
+        public void Read()
+        {
+            ReadQueue.Enqueue( Tuple.Create( OnBytes, (Action<Exception>) HandleReadException ) );
+        }
+		
+        public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
+        {
+            WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
+        }
+		
+        public SocketNode( string id, ISocket socket, OnBytesReceived onBytes )
+        {
+            Id = id;
+            OnBytes = onBytes;
             Connection = socket;
         }
     }

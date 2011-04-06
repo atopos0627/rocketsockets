@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace rocketsockets
 {
@@ -8,9 +9,9 @@ namespace rocketsockets
         public SocketNode Root { get; set; }
         public bool Running { get; set; }
 
-        public ISocket AddSocket( ISocket socket ) 
+        public ISocketHandle AddSocket( string id, ISocket socket, OnBytesReceived onBytes ) 
         {
-            var node = new SocketNode( socket );
+            var node = new SocketNode( id, socket, onBytes );
             Root.AddNode( node );
             return node;
         }
@@ -51,7 +52,7 @@ namespace rocketsockets
 
         public SocketEventLoop( ) 
         {
-            Root = new SocketNode( null ) { Available = false };
+            Root = new SocketNode( null, null, null ) { Available = false };
         }
     }
 }

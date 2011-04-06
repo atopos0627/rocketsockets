@@ -5,7 +5,7 @@ namespace rocketsockets
     public interface ISocketServer
     {
         bool Running { get; }
-        void Start( Action<ISocket> onConnection, Action<ArraySegment<byte>> onData );
+        void Start( Action<ISocketHandle> onConnection, OnBytesReceived onBytes );
         void Stop();
     }
 }

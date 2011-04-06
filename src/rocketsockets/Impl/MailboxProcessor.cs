@@ -7,7 +7,7 @@ namespace rocketsockets
     {
         public MailboxNode Root { get; set; }
         public bool Running { get; set; }
-        public Action<ArraySegment<byte>> Process { get; set; }
+        public OnBytesReceived Process { get; set; }
         public ExclusiveDictionary<string, MailboxNode> Mailboxes { get; set; }
 
         public void Loop()
@@ -47,7 +47,7 @@ namespace rocketsockets
             Root.AddNode( mailboxNode );
         }
 
-        public MailboxProcessor( Action<ArraySegment<byte>> process ) 
+        public MailboxProcessor( OnBytesReceived process ) 
         {
             Process = process;
             Root = new MailboxNode("") { Processing = true };

@@ -17,7 +17,7 @@ namespace rocketsockets
             Messages.Enqueue( message );
         }
 
-        public void Process( Action<ArraySegment<byte>> action )
+        public void Process( OnBytesReceived action )
         {
             if( !Processing && Messages.Count > 0 )
             {
@@ -32,7 +32,7 @@ namespace rocketsockets
                             if ( Messages.TryDequeue( out message ) )
                                 try
                                 {
-                                    action( message );
+                                    action( Id, message );
                                 }
                                 catch( Exception e )
                                 {

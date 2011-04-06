@@ -3,35 +3,39 @@ using System.Net.Sockets;
 
 namespace rocketsockets
 {
+    public delegate void OnBytesReceived( string receivedFrom, ArraySegment<byte> segment );
+
     public class SocketServer
         : ISocketServer
     {
         public IServerConfiguration Configuration { get; set; }
-        public Action<ISocket> OnConnection { get; set; }
+        public Action<ISocketHandle> OnConnection { get; set; }
         public bool Running { get; set; }
-        public ISocketLoop Loop { get; set; }
+        public ISocketLoop EventLoop { get; set; }
         public IMailboxProcessor Mailboxes { get; set; }
         
         public void OnSocket( Socket socket ) 
         {
             var adapter = new SocketAdapter( socket, Configuration );
-            var handle = Loop.AddSocket( adapter );
+            var id = socket.RemoteEndPoint.ToString();
+            var handle = EventLoop.AddSocket( id, adapter, (x, y) => Mailboxes.Write( x, y ) );
             OnConnection( handle );
         }
 
-        public void Start( Action<ISocket> onConnection, Action<ArraySegment<byte>> onData )
+        public void Start( Action<ISocketHandle> onConnection, OnBytesReceived onBytes )
         {
             Running = true;
             OnConnection = onConnection;
-            Mailboxes = new MailboxProcessor( onData );
-            Loop.Start();
+            Mailboxes = new MailboxProcessor( onBytes );
+            EventLoop = new SocketEventLoop();
+            EventLoop.Start();
             Mailboxes.Start();
         }
 
         public void Stop()
         {
             Running = false;
-            Loop.Stop();
+            EventLoop.Stop();
             Mailboxes.Stop();
         }
 
