@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace hotstack
+namespace hotstack.Owin
 {
     public delegate void OwinResponse(
         string status,

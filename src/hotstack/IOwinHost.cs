@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // */
-namespace hotstack.Owin
+namespace hotstack
 {
-    public interface IHost
+    public interface IOwinHost
     {
         void Start();
         void Stop();

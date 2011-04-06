@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace hotstack
+namespace hotstack.Owin
 {
     public delegate Action OwinBody(
         Func<ArraySegment<byte>, Action, bool> onNext,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace hotstack
+namespace hotstack.Owin
 {
     public delegate void OwinApplication(
         IDictionary<string, object> request,

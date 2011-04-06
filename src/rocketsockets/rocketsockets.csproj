@@ -69,6 +69,7 @@
     <Compile Include="Impl\SocketAdapter.cs" />
     <Compile Include="Impl\SocketNode.cs" />
     <Compile Include="Impl\SocketServer.cs" />
+    <Compile Include="RocketServer.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

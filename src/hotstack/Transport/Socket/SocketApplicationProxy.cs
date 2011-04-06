@@ -9,12 +9,13 @@ using rocketsockets;
 namespace hotstack.Transport.Socket 
 {
     public class SocketApplicationProxy :
-        IHandleReads
+        IApplicationAdapter
     {
         public ConcurrentDictionary<string, SocketClient> Clients { get; set; }
-        public IRouteRequest Factory { get; set; }
         public HttpServerConfiguration Configuration { get; set; }
-        
+        public IRouteRequest Router { get; set; }
+        public IOwinObserver Writer { get; set; }
+
         public void AddSocket( string id, ISocketHandle socket )
         {
             Clients.AddOrUpdate( id, 
@@ -43,11 +44,6 @@ namespace hotstack.Transport.Socket
 
         public void HandleRequestBody( SocketClient client, ArraySegment<byte> bytes ) 
         {
-            client.Application = Factory.GetApplicationFor( client.Request );
-            client.Application.Process( 
-                client.Request, 
-                new ResponseHelper( Configuration ),
-                Console.WriteLine );
             client.Application.OnNext( bytes, () => client.Socket.Read() );
             client.Next = client.Application.RequestCompleted
                 ? (Action<SocketClient, ArraySegment<byte>>) ParseRequest
@@ -56,11 +52,16 @@ namespace hotstack.Transport.Socket
 
         public void CreateApplication( SocketClient client, ArraySegment<byte> bytes ) 
         {
-            client.Application = Factory.GetApplicationFor( client.Request );
+            client.Application = Router.GetApplicationFor( client.Request );
+            var responseHelper = new ResponseHelper( Configuration );
+            var writer = new ResponseWriter( client.Socket );
+            responseHelper.Setup( writer );
+
             client.Application.Process( 
                 client.Request, 
-                new ResponseHelper( Configuration ),
+                responseHelper,
                 Console.WriteLine );
+            
             client.Next = HandleRequestBody;
             HandleNextRead( client.Id, bytes );
         }
@@ -68,7 +69,7 @@ namespace hotstack.Transport.Socket
         public SocketApplicationProxy( IRouteRequest factory, HttpServerConfiguration configuration )
         {
             Clients = new ConcurrentDictionary<string, SocketClient>();
-            Factory = factory;
+            Router = factory;
             Configuration = configuration;
         }
     }

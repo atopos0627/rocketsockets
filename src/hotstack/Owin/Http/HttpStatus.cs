@@ -16,7 +16,7 @@
 using System.Collections.Generic;
 using Symbiote.Core.Extensions;
 
-namespace hotstack.Owin.Impl
+namespace hotstack.Owin.Http
 {
     public class HttpStatus
     {

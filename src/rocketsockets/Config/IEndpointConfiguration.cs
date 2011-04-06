@@ -4,7 +4,8 @@ namespace rocketsockets
 {
     public interface IEndpointConfiguration
     {
-        string[] BindTo { get; set; }
+        bool AnyInterface { get; set; }
+        string BindTo { get; set; }
         string Name { get; set; }
         int Port { get; set; }
         bool SSL { get; set; }

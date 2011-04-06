@@ -98,6 +98,8 @@ namespace rocketsockets
             Id = id;
             OnBytes = onBytes;
             Connection = socket;
+            ReadQueue = new ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>>();
+            WriteQueue = new ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>>();
         }
     }
 }

@@ -7,7 +7,8 @@ namespace rocketsockets
     public class EndpointConfiguration :
         IEndpointConfiguration
     {
-        public string[] BindTo { get; set; }
+        public bool AnyInterface { get; set; }
+        public string BindTo { get; set; }
         public string Name { get; set; }
         public int Port { get; set; }
         public bool SSL { get; set; }

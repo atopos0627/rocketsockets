@@ -53,6 +53,7 @@ namespace rocketsockets
         public SocketEventLoop( ) 
         {
             Root = new SocketNode( null, null, null ) { Available = false };
+            Root.Next = Root;
         }
     }
 }

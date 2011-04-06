@@ -15,6 +15,7 @@
 // */
 using System;
 using hotstack.Owin;
+using hotstack.Transport.Socket;
 using Symbiote.Core;
 
 namespace hotstack.Config
@@ -25,7 +26,7 @@ namespace hotstack.Config
         public IRegisterApplication RegisterApplication { get; set; }
         public HttpServerConfigurator ServerConfigurator {get; set; }
 
-        public IConfigureHttp ConfigureWebAppSettings( Action<IConfigureServerSettings> configurator )
+        public IConfigureHttp ConfigureHost( Action<IConfigureServerSettings> configurator )
         {
             configurator( ServerConfigurator );
             return this;
@@ -37,16 +38,18 @@ namespace hotstack.Config
             return this;
         }
 
+        public IConfigureHttp HostOnSockets()
+        {
+            Assimilate.Dependencies( x => x.For<IOwinHost>().Use<RocketSocketHost>());
+            return this;
+        }
+
         public HttpConfigurator( IRegisterApplication registerApplication )
         {
             RegisterApplication = registerApplication;
             ServerConfigurator = new HttpServerConfigurator();
 
-            Assimilate
-                .Dependencies( x => 
-                {
-                    x.For<HttpServerConfiguration>().Use( ServerConfigurator.Configuration );
-                } );
+            Assimilate.Dependencies( x => x.For<HttpServerConfiguration>().Use( ServerConfigurator.Configuration ));
         }
     }
 }

@@ -19,7 +19,7 @@ namespace rocketsockets
         {
             var endpoint = new EndpointConfiguration( "default" )
             {
-                BindTo = new [] { "0.0.0.0" },
+                AnyInterface = true,
                 Port = 8998,
                 SSL = false
             };

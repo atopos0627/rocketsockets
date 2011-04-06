@@ -1,4 +1,4 @@
-﻿namespace hotstack.Owin.Impl
+﻿namespace hotstack.Owin.Http
 {
     public class HttpConstants
     {

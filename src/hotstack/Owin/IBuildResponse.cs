@@ -1,7 +1,7 @@
 ﻿using System;
-using hotstack.Owin.Impl;
+using hotstack.Owin.Http;
 
-namespace hotstack
+namespace hotstack.Owin
 {
     public interface IBuildResponse
         : IDisposable

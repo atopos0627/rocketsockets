@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using hotstack.Owin.Http;
+using hotstack.Owin.Impl;
 
-namespace hotstack.Owin.Impl
+namespace hotstack.Owin.Parser
 {
     public class RequestParser
         : HttpConstants

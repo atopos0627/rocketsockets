@@ -1,12 +1,21 @@
-﻿namespace rocketsockets
+﻿using System;
+
+namespace rocketsockets
 {
     public class EndpointConfigurator :
         IConfigureEndpoint
     {
         public IEndpointConfiguration Configuration { get; set; }
 
-        public IConfigureEndpoint BindTo( params string[] endpoints )
+        public IConfigureEndpoint BindToAll()
         {
+            Configuration.AnyInterface = true;
+            return this;
+        }
+
+        public IConfigureEndpoint BindTo( string endpoints )
+        {
+            Configuration.AnyInterface = false;
             Configuration.BindTo = endpoints;
             return this;
         }

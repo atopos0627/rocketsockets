@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using hotstack.Owin.Impl;
+using hotstack.Owin.Parser;
 
 namespace hotstack.Owin
 {

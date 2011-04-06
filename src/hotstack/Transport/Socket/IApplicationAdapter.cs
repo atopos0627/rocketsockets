@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using rocketsockets;
 
-namespace hotstack.Owin.Impl 
+namespace hotstack.Transport.Socket 
 {
-    public interface IHandleReads
+    public interface IApplicationAdapter
     {
         void AddSocket( string id, ISocketHandle socket );
         void HandleNextRead( string id, ArraySegment<byte> bytes );
     }
-
-    
 }
