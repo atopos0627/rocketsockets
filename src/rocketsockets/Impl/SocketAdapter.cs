@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 
@@ -19,10 +20,15 @@ namespace rocketsockets
         public IAsyncResult WriteHandle { get; set; }
 
         public Action<ArraySegment<byte>> OnBytes { get; set; }
-        public Action OnDisconnect { get; set; }
+        public List<Action> OnDisconnect { get; set; }
         public Action<Exception> OnException { get; set; }
         public Action OnWriteCompleted { get; set; }
-		
+
+        public void AddCloseCallback( Action onClose )
+        {
+            OnDisconnect.Add( onClose );
+        }
+
         public void Close()
         {
             if( !Disposed )
@@ -37,11 +43,21 @@ namespace rocketsockets
                         SocketStream.Close();
 
                     if( Connection != null )
+                    {
+                        Connection.Shutdown( SocketShutdown.Both );
                         Connection.Close();
+                    }
+
 
                     if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null )
+                    {
+                        ReadHandle.AsyncWaitHandle.Close();
                         ReadHandle.AsyncWaitHandle.Dispose();
+                    }
 					
+                    OnDisconnect.ForEach( x => x() );
+                    OnDisconnect.Clear();
+
                     OnBytes = null;
                     OnException = null;
                     OnWriteCompleted = null;
@@ -58,8 +74,20 @@ namespace rocketsockets
 
         public void OnRead( IAsyncResult result )
         {
-            var read = SocketStream.EndRead( result );
-            OnBytes( new ArraySegment<byte>( Bytes, 0, read ));
+            try
+            {
+                if ( !Disposed )
+                {
+                    var read = SocketStream.EndRead( result );
+                    OnBytes( new ArraySegment<byte>( Bytes, 0, read ));
+                }
+            }
+            catch ( Exception ex )
+            {
+                if ( OnException != null )
+                    OnException( ex );
+                Close();
+            }
         }
 
         public void OnWrite( IAsyncResult result )
@@ -80,7 +108,8 @@ namespace rocketsockets
             {
                 if(WriteHandle != null && WriteHandle.AsyncWaitHandle != null )
                     WriteHandle.AsyncWaitHandle.Dispose();
-                OnException( ex );
+                if ( OnException != null )
+                    OnException( ex );
             }
         }
 
@@ -88,18 +117,22 @@ namespace rocketsockets
         {
             try
             {
-                OnBytes = onBytes;
-                OnException = onException;
-                ReadHandle = SocketStream.BeginRead( 
-                    Bytes, 
-                    0, 
-                    Configuration.ReadBufferSize, 
-                    OnRead, 
-                    null );
+                if( !Disposed )
+                {
+                    OnBytes = onBytes;
+                    OnException = onException;
+                    ReadHandle = SocketStream.BeginRead( 
+                        Bytes, 
+                        0, 
+                        Configuration.ReadBufferSize, 
+                        OnRead, 
+                        null );
+                }
             }
             catch( Exception ex )
             {
-                OnException( ex );
+                if ( OnException != null )
+                    OnException( ex );
             }
         }
 
@@ -118,11 +151,13 @@ namespace rocketsockets
             }
             catch ( IOException ioex )
             {
-                OnException( ioex );
+                if ( OnException != null )
+                    OnException( ioex );
             }
             catch ( Exception ex )
             {
-                OnException( ex );
+                if ( OnException != null )
+                    OnException( ex );
             }
         }
 
@@ -135,32 +170,11 @@ namespace rocketsockets
                 Connection = connection;
                 Bytes = new byte[configuration.ReadBufferSize];
                 SocketStream = new NetworkStream( connection );
+                OnDisconnect = new List<Action>();
             } 
             catch (Exception ex) 
             {
                 Console.WriteLine( ex );
-            }
-        }
-		
-        public void Check()
-        {
-            SocketStream.BeginWrite( new byte[] {}, 0, 0, CheckComplete, null );
-        }
-		
-        public void CheckComplete( IAsyncResult result )
-        {
-            try 
-            {
-                SocketStream.EndWrite( result );
-            } 
-            finally
-            {
-                Close();
-                if( OnDisconnect != null )
-                {
-                    OnDisconnect();
-                    OnDisconnect = null;
-                }
             }
         }
 		

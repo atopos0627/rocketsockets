@@ -57,6 +57,7 @@
     <Compile Include="Impl\IMailboxProcessor.cs" />
     <Compile Include="Impl\ISocketLoop.cs" />
     <Compile Include="Impl\MailboxProcessor.cs" />
+    <Compile Include="Impl\OnBytesReceived.cs" />
     <Compile Include="Impl\SocketEventLoop.cs" />
     <Compile Include="ISocket.cs" />
     <Compile Include="ISocketHandle.cs" />

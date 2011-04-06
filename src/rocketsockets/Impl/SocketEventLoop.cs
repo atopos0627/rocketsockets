@@ -11,6 +11,7 @@ namespace rocketsockets
 
         public ISocketHandle AddSocket( string id, ISocket socket, OnBytesReceived onBytes ) 
         {
+            socket.AddCloseCallback( () => RemoveSocket( id ) );
             var node = new SocketNode( id, socket, onBytes );
             Root.AddNode( node );
             return node;
@@ -21,6 +22,7 @@ namespace rocketsockets
             var node = Root;
             while( Running )
             {
+                node = node ?? Root;
                 if( node.Available )
                 {
                     node.ExecuteNextWrite();
@@ -36,7 +38,24 @@ namespace rocketsockets
             while( node != Root ) 
             {
                 if( node == socket )
-                    socket.Close();
+                {
+                    node.Remove();
+                    break;
+                }
+                node = node.Next;
+            }
+        }
+
+        public void RemoveSocket( string id )
+        {
+            var node = Root.Next;
+            while( node != Root ) 
+            {
+                if( node.Id == id )
+                {
+                    node.Remove();
+                    break;
+                }
                 node = node.Next;
             }
         }

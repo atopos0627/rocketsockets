@@ -6,13 +6,11 @@ using Symbiote.Core.Extensions;
 
 namespace rocketsockets
 {
-    public delegate void OnBytesReceived( string receivedFrom, ArraySegment<byte> segment );
-
     public class SocketServer
         : ISocketServer
     {
         public IServerConfiguration Configuration { get; set; }
-        public Action<string, ISocketHandle> OnConnection { get; set; }
+        public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
         public ISocketLoop EventLoop { get; set; }
         public IMailboxProcessor Mailboxes { get; set; }
@@ -20,23 +18,46 @@ namespace rocketsockets
         
         public void Bind( IEndpointConfiguration configuration )
         {
-            var socket = new Socket( 
-                AddressFamily.InterNetwork, 
-                SocketType.Stream,
-                ProtocolType.IP );
-            var address = configuration.AnyInterface 
-                ? IPAddress.Any 
-                : IPAddress.Parse( configuration.BindTo );
-            var endpoint = new IPEndPoint( address, configuration.Port );
-            socket.Bind( endpoint );
-            socket.Listen( 10000 );
-            ListenTo( socket );
+            "Binding to endpoint {0}:{1}"
+                .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
+
+            try
+            {
+                var socket = new Socket( 
+                    AddressFamily.InterNetwork, 
+                    SocketType.Stream,
+                    ProtocolType.IP );
+                var address = configuration.AnyInterface 
+                                  ? IPAddress.Any 
+                                  : IPAddress.Parse( configuration.BindTo );
+                var endpoint = new IPEndPoint( address, configuration.Port );
+                socket.Bind( endpoint );
+                socket.Listen( 10000 );
+                ListenTo( socket );
+            }
+            catch (Exception e)
+            {
+                "Binding to endpoint {0}:{1} FAILED."
+                    .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
+            }
         }
 
         public void ListenTo( Socket socket )
         {
-            if( Running )
-                socket.BeginAccept( OnClient, socket );
+            try
+            {
+                if( Running )
+                {
+                    "Listening to socket {0}"
+                        .ToDebug<ISocketServer>( socket.LocalEndPoint.ToString() );
+                    socket.BeginAccept( OnClient, socket );
+                }
+            }
+            catch (Exception e)
+            {
+                "FAILURE while attempting to listen to socket {0}"
+                    .ToDebug<ISocketServer>( socket.LocalEndPoint.ToString() );
+            }
         }
 
         public void OnClient( IAsyncResult result )
@@ -44,16 +65,16 @@ namespace rocketsockets
             try
             {
                 var listener = result.AsyncState as Socket;
-                if( listener != null )
-                {
-                    var socket = listener.EndAccept( result );
-                    ListenTo( listener );
-                    OnSocket( socket );
-                }
+                var socket = listener.EndAccept( result );
+                "Socket connection on {0} to client @ {1}"
+                    .ToDebug<ISocketServer>( listener.LocalEndPoint.ToString(), socket.RemoteEndPoint.ToString() );
+                ListenTo( listener );
+                OnSocket( socket );
             }
             catch ( Exception ex )
             {
-                
+                "Error occurred while establishing connection to client: \r\n\t {0}"
+                    .ToDebug<ISocketServer>( ex );
             }
         }
 
@@ -62,10 +83,11 @@ namespace rocketsockets
             var adapter = new SocketAdapter( socket, Configuration );
             var id = socket.RemoteEndPoint.ToString();
             var handle = EventLoop.AddSocket( id, adapter, (x, y) => Mailboxes.Write( x, y ) );
+            adapter.AddCloseCallback( () => Mailboxes.Remove( id ) );
             OnConnection( id, handle );
         }
 
-        public void Start( Action<string, ISocketHandle> onConnection, OnBytesReceived onBytes )
+        public void Start( OnConnectionReceived onConnection, OnBytesReceived onBytes )
         {
             Running = true;
             OnConnection = onConnection;

@@ -14,14 +14,20 @@ namespace hotstack.Transport.Socket
         public ConcurrentDictionary<string, SocketClient> Clients { get; set; }
         public HttpServerConfiguration Configuration { get; set; }
         public IRouteRequest Router { get; set; }
-        public IOwinObserver Writer { get; set; }
 
-        public void AddSocket( string id, ISocketHandle socket )
+        public Action AddSocket( string id, ISocketHandle socket )
         {
             Clients.AddOrUpdate( id, 
                 x => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest }, 
                 ( x, y ) => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest } );
             socket.Read();
+            return () => HandleSocketClose( id );
+        }
+
+        public void HandleSocketClose( string id )
+        {
+            SocketClient client = null;
+            Clients.TryRemove( id, out client );
         }
 
         public void HandleNextRead( string id, ArraySegment<byte> bytes )
@@ -66,7 +72,7 @@ namespace hotstack.Transport.Socket
         {
             client.Application = Router.GetApplicationFor( client.Request );
             var responseHelper = new ResponseHelper( Configuration );
-            var writer = new ResponseWriter( client.Socket );
+            var writer = new ResponseWriter( client );
             responseHelper.Setup( writer );
 
             client.Application.Process( 
@@ -74,7 +80,7 @@ namespace hotstack.Transport.Socket
                 responseHelper,
                 Console.WriteLine );
             
-            client.Next = HandleRequestBody;
+            client.Next = ParseRequest;
         }
 
         public void CreateApplication( SocketClient client, ArraySegment<byte> bytes ) 

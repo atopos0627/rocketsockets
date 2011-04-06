@@ -26,7 +26,7 @@ namespace rocketsockets
             Lock.Exit();
         }
 		
-        public void Remove()
+        public virtual void Remove()
         {
             var lockTaken = false;
             Lock.TryEnter( ref lockTaken );

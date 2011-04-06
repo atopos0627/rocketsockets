@@ -5,6 +5,7 @@ using Symbiote.Core;
 using rocketsockets;
 using Symbiote.Daemon;
 using System.Linq;
+using Symbiote.Log4Net;
 
 namespace hawtness
 {
@@ -23,6 +24,8 @@ namespace hawtness
                                                                    h.DefineApplication<HelloWorld>( r => true );
                                                                } );
                                } )
+                //.AddConsoleLogger<ISocketServer>( x => x.Debug().MessageLayout( p => p.Message().Newline() ) )
+                //.AddColorConsoleLogger<ISocketHandle>( x => x.Debug().MessageLayout( p => p.Message().Newline() ).DefineColor().BackGround.IsGreen().Text.IsBlack() )
                 .Daemon( x => x.Arguments( args ).Name( "hawtness" ) )
                 .RunDaemon();
         }
@@ -52,11 +55,12 @@ namespace hawtness
     {
         public override void OnError( Exception exception )
         {
-            
+            Console.WriteLine( "An exception occurred during the processing of an application. Sad faec" );
         }
 
         public override void CompleteResponse()
         {
+            Console.WriteLine( "Dumb-face asked for a fav.ico" );
             Response
                 .Submit( HttpStatus.NoContent );
         }
@@ -64,9 +68,15 @@ namespace hawtness
 
     public class HelloWorld : Application
     {
+        public override bool HandleRequestSegment(ArraySegment<byte> data,Action continuation)
+        {
+            Console.WriteLine( "Got some datums for you!" );
+            return base.HandleRequestSegment(data,continuation);
+        }
+
         public override void OnError( Exception exception )
         {
-            
+            Console.WriteLine( "An exception occurred during the processing of an application. Sad faec" );
         }
 
         public override void CompleteResponse()

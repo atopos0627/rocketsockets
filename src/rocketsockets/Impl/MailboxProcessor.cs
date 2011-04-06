@@ -16,6 +16,7 @@ namespace rocketsockets
             var node = Root;
             while( Running )
             {
+                node = node ?? Root;
                 if( !node.Processing )
                     node.Process( Process );
                 node = node.Next;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Symbiote.Core.Extensions;
 
 namespace rocketsockets
 {
@@ -8,25 +9,28 @@ namespace rocketsockets
         ISocketHandle
     {
         public string Id { get; set; }
-        public bool Available { get { return ( !PendingRead || !PendingWrite ) && ( ReadQueue.Count > 0 || WriteQueue.Count > 0 ); } }
+        public bool Available { get { return ( !PendingRead || !PendingWrite ) && ( ReadCount > 0 || WriteCount > 0 ); } }
         public ISocket Connection { get; set; }
         public bool PendingRead { get; set; }
         public bool PendingWrite { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public object ReadLock { get; set; }
         public object WriteLock { get; set; }
+        public int ReadCount { get; set; }
+        public int WriteCount { get; set; }
         public ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>> ReadQueue { get; set; }
         public ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>> WriteQueue { get; set; }
 
         public void Close() 
         {
-            Remove();
             Connection.Close();
         }
 
         public bool ExecuteNextRead()
         {
             var readExecuted = false;
+            if( !Available )
+                return false;
             lock( ReadLock )
             {
                 if( !PendingRead && ReadQueue.Count > 0 )
@@ -35,6 +39,9 @@ namespace rocketsockets
                     Tuple<OnBytesReceived, Action<Exception>> read = null;
                     if( ReadQueue.TryDequeue( out read ) )
                     {
+                        ReadCount--;
+                        "Begging read on socket {0}"
+                            .ToDebug<ISocketHandle>(Id);
                         Connection.Read( 
                             x => {
                                      PendingRead = false;
@@ -58,6 +65,7 @@ namespace rocketsockets
             {
                 if( !PendingWrite && WriteQueue.Count > 0 )
                 {
+                    WriteCount--;
                     PendingWrite = true;
                     Tuple<ArraySegment<byte>, Action, Action<Exception>> write = null;
                     if( WriteQueue.TryDequeue( out write ) )
@@ -84,13 +92,28 @@ namespace rocketsockets
 
         }
 
+        public override void Remove()
+        {
+            ReadCount = 0;
+            WriteCount = 0;
+            base.Remove();
+            Connection = null;
+            OnBytes = null;
+            ReadLock = null;
+            WriteLock = null;
+            ReadQueue = null;
+            WriteQueue = null;
+        }
+
         public void Read()
         {
+            ReadCount++;
             ReadQueue.Enqueue( Tuple.Create( OnBytes, (Action<Exception>) HandleReadException ) );
         }
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
+            WriteCount++;
             WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
         }
 		

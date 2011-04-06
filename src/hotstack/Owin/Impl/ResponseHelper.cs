@@ -20,10 +20,7 @@ using System.Text;
 using System.Threading;
 using hotstack.Config;
 using hotstack.Owin.Http;
-using hotstack.View;
-using Symbiote.Core;
 using Symbiote.Core.Extensions;
-using Symbiote.Core.Serialization;
 using Symbiote.Core.Utility;
 
 namespace hotstack.Owin.Impl
@@ -101,8 +98,13 @@ namespace hotstack.Owin.Impl
 
         private void WriteBody( byte[] bodyBuffer )
         {
-            OnNextWrite( new ArraySegment<byte>( bodyBuffer ), () => { PendingWrite.Set(); } );
-            OnWriteComplete();
+            OnNextWrite( 
+                new ArraySegment<byte>( bodyBuffer ), 
+                () => 
+                { 
+                    PendingWrite.Set();
+                    OnWriteComplete();
+                } );
         }
 
         public void Submit( HttpStatus status )

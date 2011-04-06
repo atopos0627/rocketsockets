@@ -7,11 +7,11 @@ namespace hotstack.Transport.Socket
     public class ResponseWriter
         : IOwinObserver
     {
-        public ISocketHandle Socket { get; set; }
+        public SocketClient Client { get; set; }
 
         public bool OnNext( ArraySegment<byte> segment, Action continuation )
         {
-            Socket.Write( segment, continuation, OnError );
+            Client.Socket.Write( segment, continuation, OnError );
             return true;
         }
 
@@ -22,12 +22,13 @@ namespace hotstack.Transport.Socket
 
         public void OnComplete()
         {
-            // Close();
+            if( Client.Request.Version == "1.0" )
+                Client.Socket.Close();
         }
 
-        public ResponseWriter( ISocketHandle connection )
+        public ResponseWriter( SocketClient client )
         {
-            Socket = connection;
+            Client = client;
         }
     }
 }

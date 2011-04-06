@@ -6,6 +6,7 @@ namespace rocketsockets
     {
         ISocketHandle AddSocket( string id, ISocket socket, OnBytesReceived onBytes );
         void RemoveSocket( ISocket socket );
+        void RemoveSocket( string id );
         void Start();
         void Stop();
     }
