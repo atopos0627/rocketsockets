@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using hotstack.Config;
 using hotstack.Owin;
 using hotstack.Owin.Impl;
+using hotstack.Owin.Parser;
 using rocketsockets;
 
 namespace hotstack.Transport.Socket 
@@ -19,8 +19,8 @@ namespace hotstack.Transport.Socket
         public void AddSocket( string id, ISocketHandle socket )
         {
             Clients.AddOrUpdate( id, 
-                x => new SocketClient() { Id = id, Socket = socket }, 
-                ( x, y ) => new SocketClient() { Id = id, Socket = socket } );
+                x => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest }, 
+                ( x, y ) => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest } );
             socket.Read();
         }
 
@@ -30,27 +30,39 @@ namespace hotstack.Transport.Socket
             if( Clients.TryGetValue( id, out client ) )
             {
                 client.Next( client, bytes );
+                client.Socket.Read();
             }
         }
 
         public void ParseRequest( SocketClient client, ArraySegment<byte> bytes ) 
         {
             var request = new Request( x => HandleNextRead( client.Id, bytes ) );
-            request.Parse( request, bytes );
+            RequestParser.PopulateRequest( request, bytes );
             client.Request = request;
             client.Application = null;
+            if( !client.Request.CanHaveBody && client.Request.HeadersComplete )
+            {
+                CreateApplication( client );
+                client.Application.OnComplete();
+            }
             client.Next = CreateApplication;
         }
 
         public void HandleRequestBody( SocketClient client, ArraySegment<byte> bytes ) 
         {
             client.Application.OnNext( bytes, () => client.Socket.Read() );
-            client.Next = client.Application.RequestCompleted
-                ? (Action<SocketClient, ArraySegment<byte>>) ParseRequest
-                : HandleRequestBody;
+            if( client.Application.RequestCompleted ) 
+            {
+                client.Application.OnComplete();
+                client.Next = ParseRequest;
+            }
+            else
+            {
+                client.Next = HandleRequestBody;
+            }
         }
 
-        public void CreateApplication( SocketClient client, ArraySegment<byte> bytes ) 
+        public void CreateApplication( SocketClient client ) 
         {
             client.Application = Router.GetApplicationFor( client.Request );
             var responseHelper = new ResponseHelper( Configuration );
@@ -63,6 +75,11 @@ namespace hotstack.Transport.Socket
                 Console.WriteLine );
             
             client.Next = HandleRequestBody;
+        }
+
+        public void CreateApplication( SocketClient client, ArraySegment<byte> bytes ) 
+        {
+            CreateApplication( client );
             HandleNextRead( client.Id, bytes );
         }
 

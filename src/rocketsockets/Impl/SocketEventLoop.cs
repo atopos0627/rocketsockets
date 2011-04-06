@@ -22,8 +22,10 @@ namespace rocketsockets
             while( Running )
             {
                 if( node.Available )
-                    if( !node.ExecuteNextRead() )
-                        node.ExecuteNextWrite();
+                {
+                    node.ExecuteNextWrite();
+                    node.ExecuteNextRead();
+                }
                 node = node.Next;
             }
         }
@@ -52,7 +54,7 @@ namespace rocketsockets
 
         public SocketEventLoop( ) 
         {
-            Root = new SocketNode( null, null, null ) { Available = false };
+            Root = new SocketNode( "", null, null );
             Root.Next = Root;
         }
     }

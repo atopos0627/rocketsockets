@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace rocketsockets
 {
@@ -15,7 +16,7 @@ namespace rocketsockets
             var node = Root;
             while( Running )
             {
-                if( node.Processing )
+                if( !node.Processing )
                     node.Process( Process );
                 node = node.Next;
             }
@@ -33,6 +34,7 @@ namespace rocketsockets
         public void Start()
         {
             Running = true;
+            var task = Task.Factory.StartNew( Loop );
         }
 
         public void Stop()
@@ -51,6 +53,7 @@ namespace rocketsockets
         {
             Process = process;
             Root = new MailboxNode("") { Processing = true };
+            Root.Next = Root;
             Mailboxes = new ExclusiveDictionary<string, MailboxNode>();
         }
     }

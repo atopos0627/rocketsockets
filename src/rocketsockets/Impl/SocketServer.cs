@@ -35,7 +35,8 @@ namespace rocketsockets
 
         public void ListenTo( Socket socket )
         {
-            socket.BeginAccept( OnClient, socket );
+            if( Running )
+                socket.BeginAccept( OnClient, socket );
         }
 
         public void OnClient( IAsyncResult result )
@@ -50,7 +51,7 @@ namespace rocketsockets
                     OnSocket( socket );
                 }
             }
-            catch ( Exception )
+            catch ( Exception ex )
             {
                 
             }

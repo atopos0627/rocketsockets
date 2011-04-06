@@ -17,7 +17,7 @@ namespace hotstack
         public virtual void Process( IRequest request, IBuildResponse response, Action<Exception> onException )
         {
             Request = request;
-            Cancel = Request.Body( OnNext, OnError, OnComplete );
+            //Cancel = Request.Body( OnNext, OnError, OnComplete );
             Response = response;
             OnApplicationException = onException;
         }

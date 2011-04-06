@@ -19,7 +19,7 @@ namespace rocketsockets
 			
             if( ResetNext != null )
                 ResetNext( newNode );
-            Next = Next ?? newNode;			
+            Next = newNode;			
             Action<TNode> defaultNext = x => Next = x;
             newNode.ResetNext = ResetNext ?? defaultNext;
             ResetNext = x => newNode.Next = x;

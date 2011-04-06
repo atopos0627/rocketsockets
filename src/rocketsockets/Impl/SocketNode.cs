@@ -8,12 +8,13 @@ namespace rocketsockets
         ISocketHandle
     {
         public string Id { get; set; }
-        public bool Available { get; set; }
+        public bool Available { get { return ( !PendingRead || !PendingWrite ) && ( ReadQueue.Count > 0 || WriteQueue.Count > 0 ); } }
         public ISocket Connection { get; set; }
         public bool PendingRead { get; set; }
         public bool PendingWrite { get; set; }
         public OnBytesReceived OnBytes { get; set; }
-        public object OperationLock { get; set; }
+        public object ReadLock { get; set; }
+        public object WriteLock { get; set; }
         public ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>> ReadQueue { get; set; }
         public ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>> WriteQueue { get; set; }
 
@@ -26,21 +27,21 @@ namespace rocketsockets
         public bool ExecuteNextRead()
         {
             var readExecuted = false;
-            lock( OperationLock )
+            lock( ReadLock )
             {
-                if( Available && ReadQueue.Count > 0 )
+                if( !PendingRead && ReadQueue.Count > 0 )
                 {
-                    Available = false;
+                    PendingRead = true;
                     Tuple<OnBytesReceived, Action<Exception>> read = null;
                     if( ReadQueue.TryDequeue( out read ) )
                     {
                         Connection.Read( 
                             x => {
-                                     Available = true;
+                                     PendingRead = false;
                                      read.Item1( Id, x );
                             },
                             x => {
-                                     Available = true;
+                                     PendingRead = false;
                                      read.Item2( x );
                             });
                         readExecuted = true;
@@ -53,22 +54,22 @@ namespace rocketsockets
         public bool ExecuteNextWrite()
         {
             var writeExecuted = false;
-            lock( OperationLock )
+            lock( ReadLock )
             {
-                if( Available && WriteQueue.Count > 0 )
+                if( !PendingWrite && WriteQueue.Count > 0 )
                 {
-                    Available = false;
+                    PendingWrite = true;
                     Tuple<ArraySegment<byte>, Action, Action<Exception>> write = null;
                     if( WriteQueue.TryDequeue( out write ) )
                     {
                         Connection.Write(
                             write.Item1,
                             () => {
-                                      Available = true;
+                                      PendingWrite = false;
                                       write.Item2();
                             },
                             x => {
-                                     Available = true;
+                                     PendingWrite = false;
                                      write.Item3( x );
                             });
                         writeExecuted = true;
@@ -98,6 +99,7 @@ namespace rocketsockets
             Id = id;
             OnBytes = onBytes;
             Connection = socket;
+            ReadLock = new object();
             ReadQueue = new ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>>();
             WriteQueue = new ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>>();
         }

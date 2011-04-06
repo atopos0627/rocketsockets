@@ -4,6 +4,7 @@ using hotstack.Owin.Http;
 using Symbiote.Core;
 using rocketsockets;
 using Symbiote.Daemon;
+using System.Linq;
 
 namespace hawtness
 {
@@ -18,6 +19,7 @@ namespace hawtness
                                {
                                    x.RegisterApplications( h =>
                                                                {
+                                                                   h.DefineApplication<Gtfo>( r => r.RequestUri.EndsWith( ".ico" ) );
                                                                    h.DefineApplication<HelloWorld>( r => true );
                                                                } );
                                } )
@@ -43,6 +45,20 @@ namespace hawtness
         public App( IOwinHost host )
         {
             Host = host;
+        }
+    }
+
+    public class Gtfo : Application
+    {
+        public override void OnError( Exception exception )
+        {
+            
+        }
+
+        public override void CompleteResponse()
+        {
+            Response
+                .Submit( HttpStatus.NoContent );
         }
     }
 
