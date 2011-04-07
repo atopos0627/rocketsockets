@@ -12,8 +12,9 @@ namespace rocketsockets
         public IServerConfiguration Configuration { get; set; }
         public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
-        public ISocketLoop EventLoop { get; set; }
-        public IMailboxProcessor Mailboxes { get; set; }
+        public IEventLoop SocketEventLoop { get; set; }
+        public IEventLoop ApplicationEventLoop { get; set; }
+        public OnBytesReceived OnBytes { get; set; }
         public List<Socket> Listeners { get; set; }
         
         public void Bind( IEndpointConfiguration configuration )
@@ -82,8 +83,12 @@ namespace rocketsockets
         {
             var adapter = new SocketAdapter( socket, Configuration );
             var id = socket.RemoteEndPoint.ToString();
-            var handle = new SocketHandle( id, adapter, EventLoop, (x, y) => Mailboxes.Write( x, y ) );
-            adapter.AddCloseCallback( () => Mailboxes.Remove( id ) );
+            var handle = new SocketHandle( 
+                id, 
+                adapter, 
+                SocketEventLoop, 
+                (x, y) => ApplicationEventLoop.Enqueue( () => OnBytes( x, y ) ) 
+            );
             OnConnection( id, handle );
         }
 
@@ -91,10 +96,11 @@ namespace rocketsockets
         {
             Running = true;
             OnConnection = onConnection;
-            Mailboxes = new MailboxProcessor( onBytes );
-            EventLoop = new SocketEventLoop();
-            EventLoop.Start();
-            Mailboxes.Start();
+            OnBytes = onBytes;
+            SocketEventLoop = new EventLoop();
+            ApplicationEventLoop = new EventLoop();
+            SocketEventLoop.Start( 30 );
+            ApplicationEventLoop.Start( 30 );
             Configuration
                 .Endpoints
                 .ForEach( Bind );
@@ -103,8 +109,8 @@ namespace rocketsockets
         public void Stop()
         {
             Running = false;
-            EventLoop.Stop();
-            Mailboxes.Stop();
+            SocketEventLoop.Stop();
+            ApplicationEventLoop.Stop();
         }
 
         public SocketServer( IServerConfiguration configuration )

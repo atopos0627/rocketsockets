@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace rocketsockets
 {
-    public class SocketEventLoop :
-        ISocketLoop
+    public class EventLoop :
+        IEventLoop
     {
         public bool Running { get; set; }
         public ConcurrentQueue<Action> ActionQueue { get; set; }
@@ -39,10 +39,11 @@ namespace rocketsockets
             ActionQueue.Enqueue( action );
         }
 
-        public void Start() 
+        public void Start( int workers ) 
         {
             Running = true;
-            var task = Task.Factory.StartNew( Loop );
+            for( int i = 0; i < workers; i ++ )
+                Task.Factory.StartNew( Loop );
         }
 
         public void Stop() 
@@ -50,7 +51,7 @@ namespace rocketsockets
             Running = false;
         }
 
-        public SocketEventLoop( ) 
+        public EventLoop( ) 
         {
             ActionQueue = new ConcurrentQueue<Action>();
         }

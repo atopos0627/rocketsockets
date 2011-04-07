@@ -2,10 +2,10 @@
 
 namespace rocketsockets
 {
-    public interface ISocketLoop
+    public interface IEventLoop
     {
         void Enqueue( Action action );
-        void Start();
+        void Start( int workers );
         void Stop();
     }
 }

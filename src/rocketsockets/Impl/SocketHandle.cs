@@ -9,7 +9,7 @@ namespace rocketsockets
     {
         public string Id { get; set; }
         public ISocket Connection { get; set; }
-        public ISocketLoop Loop { get; set; }
+        public IEventLoop Loop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public int ReadCount { get; set; }
         public int WriteCount { get; set; }
@@ -48,7 +48,7 @@ namespace rocketsockets
                 );
         }
 		
-        public SocketHandle( string id, ISocket socket, ISocketLoop loop, OnBytesReceived onBytes )
+        public SocketHandle( string id, ISocket socket, IEventLoop loop, OnBytesReceived onBytes )
         {
             Id = id;
             OnBytes = onBytes;
