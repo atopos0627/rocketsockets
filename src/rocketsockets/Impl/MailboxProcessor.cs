@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace rocketsockets
@@ -16,10 +17,11 @@ namespace rocketsockets
             var node = Root;
             while( Running )
             {
-                node = node ?? Root;
                 if( !node.Processing )
                     node.Process( Process );
-                node = node.Next;
+                if( node.Id == "" )
+                    Thread.Sleep( 1 );
+                node = node.Next ?? Root;
             }
         }
 

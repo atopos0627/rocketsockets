@@ -9,7 +9,8 @@ namespace rocketsockets
         ISocketHandle
     {
         public string Id { get; set; }
-        public bool Available { get { return ( !PendingRead || !PendingWrite ) && ( ReadCount > 0 || WriteCount > 0 ); } }
+        public bool Removed { get; set; }
+        public bool Available { get { return !Removed && ( !PendingRead || !PendingWrite ) && ( ReadCount > 0 || WriteCount > 0 ); } }
         public ISocket Connection { get; set; }
         public bool PendingRead { get; set; }
         public bool PendingWrite { get; set; }
@@ -29,29 +30,34 @@ namespace rocketsockets
         public bool ExecuteNextRead()
         {
             var readExecuted = false;
-            if( !Available )
-                return false;
-            lock( ReadLock )
+            if( !PendingRead && ReadCount > 0 )
             {
-                if( !PendingRead && ReadQueue.Count > 0 )
+                lock( ReadLock )
                 {
-                    PendingRead = true;
                     Tuple<OnBytesReceived, Action<Exception>> read = null;
-                    if( ReadQueue.TryDequeue( out read ) )
+
+                    try
                     {
-                        ReadCount--;
-                        "Begging read on socket {0}"
-                            .ToDebug<ISocketHandle>(Id);
-                        Connection.Read( 
-                            x => {
-                                     PendingRead = false;
-                                     read.Item1( Id, x );
-                            },
-                            x => {
-                                     PendingRead = false;
-                                     read.Item2( x );
-                            });
-                        readExecuted = true;
+                        if( ReadQueue.TryDequeue( out read ) )
+                        {
+                            ReadCount--;
+                            PendingRead = true;
+                            "Begging read on socket {0}"
+                                .ToDebug<ISocketHandle>(Id);
+                            Connection.Read( 
+                                x => {
+                                         read.Item1( Id, x );
+                                         PendingRead = false;
+                                },
+                                x => {
+                                         PendingRead = false;
+                                         read.Item2( x );
+                                });
+                            readExecuted = true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
                     }
                 }
             }
@@ -61,24 +67,24 @@ namespace rocketsockets
         public bool ExecuteNextWrite()
         {
             var writeExecuted = false;
-            lock( ReadLock )
+            if( !PendingWrite && WriteCount > 0 )
             {
-                if( !PendingWrite && WriteQueue.Count > 0 )
+                lock( WriteLock )
                 {
-                    WriteCount--;
-                    PendingWrite = true;
                     Tuple<ArraySegment<byte>, Action, Action<Exception>> write = null;
                     if( WriteQueue.TryDequeue( out write ) )
                     {
+                        WriteCount--;
+                        PendingWrite = true;
                         Connection.Write(
                             write.Item1,
                             () => {
-                                      PendingWrite = false;
-                                      write.Item2();
+                                        PendingWrite = false;
+                                        write.Item2();
                             },
                             x => {
-                                     PendingWrite = false;
-                                     write.Item3( x );
+                                        PendingWrite = false;
+                                        write.Item3( x );
                             });
                         writeExecuted = true;
                     }
@@ -94,13 +100,12 @@ namespace rocketsockets
 
         public override void Remove()
         {
+            Removed = true;
             ReadCount = 0;
             WriteCount = 0;
             base.Remove();
             Connection = null;
             OnBytes = null;
-            ReadLock = null;
-            WriteLock = null;
             ReadQueue = null;
             WriteQueue = null;
         }
@@ -113,8 +118,9 @@ namespace rocketsockets
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            WriteCount++;
-            WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
+            Connection.Write( segment, onComplete, onException );
+            //WriteCount++;
+            //WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
         }
 		
         public SocketNode( string id, ISocket socket, OnBytesReceived onBytes )
@@ -123,6 +129,7 @@ namespace rocketsockets
             OnBytes = onBytes;
             Connection = socket;
             ReadLock = new object();
+            WriteLock = new object();
             ReadQueue = new ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>>();
             WriteQueue = new ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>>();
         }

@@ -82,7 +82,7 @@ namespace hawtness
         public override void CompleteResponse()
         {
             Response
-                .AppendToBody( "Hellizzle Wizzizzorld! It's da HTTPizzleDizzle Fo' Rizzle, Fo' Shizzle!" )
+                .AppendToBody( "Hellizzle Wizzizzorld! It's da HTTPizzleDizzle Fo' Rizzle, Fo' Shizzle!\r\n" )
                 .Submit( HttpStatus.Ok );
         }
     }

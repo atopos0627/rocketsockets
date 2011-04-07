@@ -39,22 +39,30 @@ namespace rocketsockets
                     if( WriteHandle != null && WriteHandle.AsyncWaitHandle != null && !WriteHandle.IsCompleted )
                         WriteHandle.AsyncWaitHandle.WaitOne();
 					
-                    if( SocketStream != null )
-                        SocketStream.Close();
-
-                    if( Connection != null )
-                    {
-                        Connection.Shutdown( SocketShutdown.Both );
-                        Connection.Close();
-                    }
-
-
                     if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null )
                     {
                         ReadHandle.AsyncWaitHandle.Close();
                         ReadHandle.AsyncWaitHandle.Dispose();
                     }
-					
+
+                    if( SocketStream != null )
+                        SocketStream.Close();
+
+                    if( Connection != null )
+                    {
+                        Connection.BeginDisconnect( 
+                            false, 
+                            x =>
+                            {
+                                Connection.EndDisconnect( x );
+                                Connection.Close();
+                                Connection = null;
+                            }, 
+                            null );
+                        //Connection.Dispose();
+                        //Connection.Shutdown( SocketShutdown.Both );
+                    }
+
                     OnDisconnect.ForEach( x => x() );
                     OnDisconnect.Clear();
 
@@ -67,7 +75,6 @@ namespace rocketsockets
                 finally
                 {
                     SocketStream = null;
-                    Connection = null;
                 }
             }
         }
@@ -165,7 +172,7 @@ namespace rocketsockets
         {
             try 
             {
-                Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
+                //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
                 Configuration = configuration;
                 Connection = connection;
                 Bytes = new byte[configuration.ReadBufferSize];
@@ -188,7 +195,7 @@ namespace rocketsockets
 		
         ~SocketAdapter()
         {
-            Console.WriteLine( "Remaining {1}: {0}", --Total, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
+            //Console.WriteLine( "Remaining {1}: {0}", --Total, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
         }
     }
 }
