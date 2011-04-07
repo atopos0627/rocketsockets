@@ -28,6 +28,7 @@ namespace hotstack.Owin.Impl
         public bool Initialized { get; set; }
         public IPEndPoint ClientEndpoint { get; set; }
         public bool HeadersComplete { get; set; }
+        public bool KeepAlive { get; set; }
         public string Method { get; set; }
         public string Scheme { get; set; }
         public string Server { get; set; }

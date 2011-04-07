@@ -22,9 +22,9 @@ namespace rocketsockets
                     {
                         action();
                     }
-                    finally
+                    catch( Exception ex ) 
                     {
-                        Thread.Yield();
+                        Console.WriteLine( ex );
                     }
                 }
                 else 

@@ -9,19 +9,27 @@ namespace rocketsockets
     {
         public string Id { get; set; }
         public ISocket Connection { get; set; }
-        public IEventLoop Loop { get; set; }
+        public IEventLoop IoLoop { get; set; }
+        public IEventLoop DisposeLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public int ReadCount { get; set; }
         public int WriteCount { get; set; }
 
         public void Close() 
         {
-            Loop = null;
+            IoLoop = null;
             OnBytes = null;
             ReadCount = 0;
             WriteCount = 0;
             Connection.Close();
             Connection = null;
+            DisposeLoop = null;
+            //DisposeLoop.Enqueue( () =>
+            //{
+            //    Connection.Close();
+            //    Connection = null;
+            //    DisposeLoop = null;
+            //} );
         }
 
         public void HandleReadException( Exception exception ) 
@@ -31,7 +39,7 @@ namespace rocketsockets
 
         public void Read()
         {
-            Loop.Enqueue( () => 
+            IoLoop.Enqueue( () => 
                 Connection.Read( 
                     x => OnBytes( Id, x ), 
                     HandleReadException ) 
@@ -40,7 +48,7 @@ namespace rocketsockets
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            Loop.Enqueue( () => 
+            IoLoop.Enqueue( () => 
                 Connection.Write(
                             segment,
                             onComplete,
@@ -48,12 +56,13 @@ namespace rocketsockets
                 );
         }
 		
-        public SocketHandle( string id, ISocket socket, IEventLoop loop, OnBytesReceived onBytes )
+        public SocketHandle( string id, ISocket socket, IEventLoop ioLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
         {
             Id = id;
             OnBytes = onBytes;
             Connection = socket;
-            Loop = loop;
+            IoLoop = ioLoop;
+            DisposeLoop = disposeLoop;
         }
     }
 }

@@ -13,6 +13,7 @@ namespace rocketsockets
         public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
         public IEventLoop SocketEventLoop { get; set; }
+        public IEventLoop DisposeEventLoop { get; set; }
         public IEventLoop ApplicationEventLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public List<Socket> Listeners { get; set; }
@@ -87,6 +88,7 @@ namespace rocketsockets
                 id, 
                 adapter, 
                 SocketEventLoop, 
+                DisposeEventLoop,
                 (x, y) => ApplicationEventLoop.Enqueue( () => OnBytes( x, y ) ) 
             );
             OnConnection( id, handle );
@@ -99,8 +101,10 @@ namespace rocketsockets
             OnBytes = onBytes;
             SocketEventLoop = new EventLoop();
             ApplicationEventLoop = new EventLoop();
-            SocketEventLoop.Start( 30 );
-            ApplicationEventLoop.Start( 30 );
+            DisposeEventLoop = new EventLoop();
+            SocketEventLoop.Start( 1 );
+            ApplicationEventLoop.Start( 1 );
+            //DisposeEventLoop.Start( 1 );
             Configuration
                 .Endpoints
                 .ForEach( Bind );

@@ -32,6 +32,8 @@ namespace hotstack.Owin.Parser
             {
                 var headerName = ParseValue( buffer, COLON );
                 var value = ParseValue( buffer, CR ).Trim();
+                if( headerName.Equals( "Connection" ) && value.Equals( "Keep-Alive" ) )
+                    request.KeepAlive = true;
                 request.Headers.Add( headerName, value );
             }
 
@@ -196,6 +198,7 @@ namespace hotstack.Owin.Parser
         {
             request.Scheme = ParseValue( buffer, SLASH );
             request.Version = ParseValue( buffer, CR );
+            request.KeepAlive = request.Version.Equals( "1.1" );
         }
     }
 }
