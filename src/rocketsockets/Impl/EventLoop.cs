@@ -16,13 +16,13 @@ namespace rocketsockets
             while( Running )
             {
                 Action action = null;
-                if( ActionQueue.TryDequeue( out action ) )
+                if( ActionQueue.Count > 0 && ActionQueue.TryDequeue( out action ) )
                 {
                     try
                     {
                         action();
                     }
-                    catch( Exception ex ) 
+                    catch( Exception ex )
                     {
                         Console.WriteLine( ex );
                     }
