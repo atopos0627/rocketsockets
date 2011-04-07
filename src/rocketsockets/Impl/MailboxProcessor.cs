@@ -38,6 +38,8 @@ namespace rocketsockets
         {
             Running = true;
             var task = Task.Factory.StartNew( Loop );
+            Task.Factory.StartNew( Loop );
+            Task.Factory.StartNew( Loop );
         }
 
         public void Stop()

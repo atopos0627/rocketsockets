@@ -24,50 +24,6 @@ namespace hotstack.Transport.Socket
             return () => HandleSocketClose( id );
         }
 
-        public void HandleSocketClose( string id )
-        {
-            SocketClient client = null;
-            Clients.TryRemove( id, out client );
-        }
-
-        public void HandleNextRead( string id, ArraySegment<byte> bytes )
-        {
-            SocketClient client = null;
-            if( Clients.TryGetValue( id, out client ) )
-            {
-                client.Next( client, bytes );
-                client.Socket.Read();
-            }
-        }
-
-        public void ParseRequest( SocketClient client, ArraySegment<byte> bytes ) 
-        {
-            var request = new Request( x => HandleNextRead( client.Id, bytes ) );
-            RequestParser.PopulateRequest( request, bytes );
-            client.Request = request;
-            client.Application = null;
-            if( !client.Request.CanHaveBody && client.Request.HeadersComplete )
-            {
-                CreateApplication( client );
-                client.Application.OnComplete();
-            }
-            client.Next = CreateApplication;
-        }
-
-        public void HandleRequestBody( SocketClient client, ArraySegment<byte> bytes ) 
-        {
-            client.Application.OnNext( bytes, () => client.Socket.Read() );
-            if( client.Application.RequestCompleted ) 
-            {
-                client.Application.OnComplete();
-                client.Next = ParseRequest;
-            }
-            else
-            {
-                client.Next = HandleRequestBody;
-            }
-        }
-
         public void CreateApplication( SocketClient client ) 
         {
             client.Application = Router.GetApplicationFor( client.Request );
@@ -87,6 +43,52 @@ namespace hotstack.Transport.Socket
         {
             CreateApplication( client );
             HandleNextRead( client.Id, bytes );
+        }
+
+        public void HandleNextRead( string id, ArraySegment<byte> bytes )
+        {
+            SocketClient client = null;
+            if( Clients.TryGetValue( id, out client ) )
+            {
+                client.Next( client, bytes );
+            }
+        }
+
+        public void HandleRequestBody( SocketClient client, ArraySegment<byte> bytes ) 
+        {
+            client.Application.OnNext( bytes, () => client.Socket.Read() );
+            if( client.Application.RequestCompleted ) 
+            {
+                client.Application.OnComplete();
+                client.Next = ParseRequest;
+            }
+            else
+            {
+                client.Next = HandleRequestBody;
+                client.Socket.Read();
+            }
+        }
+
+        public void HandleSocketClose( string id )
+        {
+            SocketClient client = null;
+            Clients.TryRemove( id, out client );
+        }
+
+        public void ParseRequest( SocketClient client, ArraySegment<byte> bytes ) 
+        {
+            client.Next = ( client.Request == null || !client.Request.HeadersComplete ) 
+                ? client.Next 
+                : CreateApplication;
+
+            client.Request = client.Request ?? new Request( x => HandleNextRead( client.Id, x ) );
+            RequestParser.PopulateRequest( client.Request, bytes );
+
+            if( !client.Request.CanHaveBody && client.Request.HeadersComplete )
+            {
+                CreateApplication( client );
+                client.Application.OnComplete();
+            }
         }
 
         public SocketApplicationProxy( IRouteRequest factory, HttpServerConfiguration configuration )

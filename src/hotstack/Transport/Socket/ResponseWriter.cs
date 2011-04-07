@@ -22,8 +22,13 @@ namespace hotstack.Transport.Socket
 
         public void OnComplete()
         {
-            if( Client.Request.Version == "1.0" )
+            var keep_alive = Client.Request.Version == "1.0" || Client.Request.Headers["Connection"].Equals( "Keep-Alive" );
+            Client.Request = null;
+            Client.Application = null;
+            if( keep_alive )
                 Client.Socket.Close();
+            else
+                Client.Socket.Read();
         }
 
         public ResponseWriter( SocketClient client )

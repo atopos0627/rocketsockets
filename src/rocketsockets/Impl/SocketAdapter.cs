@@ -49,19 +49,7 @@ namespace rocketsockets
                         SocketStream.Close();
 
                     if( Connection != null )
-                    {
-                        Connection.BeginDisconnect( 
-                            false, 
-                            x =>
-                            {
-                                Connection.EndDisconnect( x );
-                                Connection.Close();
-                                Connection = null;
-                            }, 
-                            null );
-                        //Connection.Dispose();
-                        //Connection.Shutdown( SocketShutdown.Both );
-                    }
+                        Connection.Close();
 
                     OnDisconnect.ForEach( x => x() );
                     OnDisconnect.Clear();
