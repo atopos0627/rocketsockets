@@ -82,7 +82,7 @@ namespace rocketsockets
         {
             var adapter = new SocketAdapter( socket, Configuration );
             var id = socket.RemoteEndPoint.ToString();
-            var handle = EventLoop.AddSocket( id, adapter, (x, y) => Mailboxes.Write( x, y ) );
+            var handle = new SocketHandle( id, adapter, EventLoop, (x, y) => Mailboxes.Write( x, y ) );
             adapter.AddCloseCallback( () => Mailboxes.Remove( id ) );
             OnConnection( id, handle );
         }

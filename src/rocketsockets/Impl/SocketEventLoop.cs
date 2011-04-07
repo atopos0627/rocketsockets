@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,59 +8,35 @@ namespace rocketsockets
     public class SocketEventLoop :
         ISocketLoop
     {
-        public SocketNode Root { get; set; }
         public bool Running { get; set; }
-
-        public ISocketHandle AddSocket( string id, ISocket socket, OnBytesReceived onBytes ) 
-        {
-            socket.AddCloseCallback( () => RemoveSocket( id ) );
-            var node = new SocketNode( id, socket, onBytes );
-            Root.AddNode( node );
-            return node;
-        }
-
+        public ConcurrentQueue<Action> ActionQueue { get; set; }
+        
         public void Loop()
         {
-            var node = Root;
             while( Running )
             {
-                if( node.Available )
+                Action action = null;
+                if( ActionQueue.TryDequeue( out action ) )
                 {
-                    //node.ExecuteNextWrite();
-                    node.ExecuteNextRead();
+                    try
+                    {
+                        action();
+                    }
+                    finally
+                    {
+                        Thread.Yield();
+                    }
                 }
-                if( node.Id == "" )
+                else 
+                {
                     Thread.Sleep( 1 );
-                node = node.Next ?? Root;
+                }
             }
         }
 
-        public void RemoveSocket( ISocket socket )
+        public void Enqueue( Action action ) 
         {
-            var node = Root.Next;
-            while( node != Root ) 
-            {
-                if( node == socket )
-                {
-                    node.Remove();
-                    break;
-                }
-                node = node.Next;
-            }
-        }
-
-        public void RemoveSocket( string id )
-        {
-            var node = Root.Next;
-            while( node != Root ) 
-            {
-                if( node.Id == id )
-                {
-                    node.Remove();
-                    break;
-                }
-                node = node.Next;
-            }
+            ActionQueue.Enqueue( action );
         }
 
         public void Start() 
@@ -75,8 +52,7 @@ namespace rocketsockets
 
         public SocketEventLoop( ) 
         {
-            Root = new SocketNode( "", null, null );
-            Root.Next = Root;
+            ActionQueue = new ConcurrentQueue<Action>();
         }
     }
 }

@@ -4,14 +4,14 @@ using Symbiote.Core.Extensions;
 
 namespace rocketsockets
 {
-    public class SocketNode :
-        LoopNode<SocketNode>,
+    public class SocketHandle :
         ISocketHandle
     {
         public string Id { get; set; }
         public bool Removed { get; set; }
         public bool Available { get { return !Removed && ( !PendingRead || !PendingWrite ) && ( ReadCount > 0 || WriteCount > 0 ); } }
         public ISocket Connection { get; set; }
+        public ISocketLoop Loop { get; set; }
         public bool PendingRead { get; set; }
         public bool PendingWrite { get; set; }
         public OnBytesReceived OnBytes { get; set; }
@@ -24,10 +24,20 @@ namespace rocketsockets
 
         public void Close() 
         {
+            Removed = true;
+            Loop = null;
+            PendingRead = false;
+            PendingWrite = false;
+            OnBytes = null;
+            ReadCount = 0;
+            WriteCount = 0;
+            ReadQueue = null;
+            WriteQueue = null;
             Connection.Close();
+            Connection = null;
         }
 
-        public bool ExecuteNextRead()
+        public void ExecuteNextRead()
         {
             var readExecuted = false;
             if( !PendingRead && ReadCount > 0 )
@@ -61,10 +71,9 @@ namespace rocketsockets
                     }
                 }
             }
-            return readExecuted;
         }
 		
-        public bool ExecuteNextWrite()
+        public void ExecuteNextWrite()
         {
             var writeExecuted = false;
             if( !PendingWrite && WriteCount > 0 )
@@ -90,7 +99,6 @@ namespace rocketsockets
                     }
                 }
             }
-            return writeExecuted;
         }
 
         public void HandleReadException( Exception exception ) 
@@ -98,38 +106,29 @@ namespace rocketsockets
 
         }
 
-        public override void Remove()
-        {
-            Removed = true;
-            ReadCount = 0;
-            WriteCount = 0;
-            base.Remove();
-            Connection = null;
-            OnBytes = null;
-            ReadQueue = null;
-            WriteQueue = null;
-        }
-
         public void Read()
         {
             ReadCount++;
             ReadQueue.Enqueue( Tuple.Create( OnBytes, (Action<Exception>) HandleReadException ) );
+            Loop.Enqueue( ExecuteNextRead );
         }
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            Connection.Write( segment, onComplete, onException );
-            //WriteCount++;
-            //WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
+            //Connection.Write( segment, onComplete, onException );
+            WriteCount++;
+            WriteQueue.Enqueue( Tuple.Create( segment, onComplete, onException ) );
+            Loop.Enqueue( ExecuteNextWrite );
         }
 		
-        public SocketNode( string id, ISocket socket, OnBytesReceived onBytes )
+        public SocketHandle( string id, ISocket socket, ISocketLoop loop, OnBytesReceived onBytes )
         {
             Id = id;
             OnBytes = onBytes;
             Connection = socket;
             ReadLock = new object();
             WriteLock = new object();
+            Loop = loop;
             ReadQueue = new ConcurrentQueue<Tuple<OnBytesReceived, Action<Exception>>>();
             WriteQueue = new ConcurrentQueue<Tuple<ArraySegment<byte>, Action, Action<Exception>>>();
         }

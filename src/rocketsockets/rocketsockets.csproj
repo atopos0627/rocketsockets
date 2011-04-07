@@ -68,7 +68,7 @@
     <Compile Include="Config\ServerConfiguration.cs" />
     <Compile Include="Config\ServerConfigurator.cs" />
     <Compile Include="Impl\SocketAdapter.cs" />
-    <Compile Include="Impl\SocketNode.cs" />
+    <Compile Include="Impl\SocketHandle.cs" />
     <Compile Include="Impl\SocketServer.cs" />
     <Compile Include="RocketServer.cs" />
   </ItemGroup>
