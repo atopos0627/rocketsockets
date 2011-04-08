@@ -7,7 +7,7 @@ namespace rocketsockets
     public class SocketHandle :
         ISocketHandle
     {
-        public string Id { get; set; }
+        public string Id { get { return Connection.Id; } }
         public ISocket Connection { get; set; }
         public IEventLoop IoLoop { get; set; }
         public IEventLoop DisposeLoop { get; set; }
@@ -56,9 +56,8 @@ namespace rocketsockets
                 );
         }
 		
-        public SocketHandle( string id, ISocket socket, IEventLoop ioLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
+        public SocketHandle( ISocket socket, IEventLoop ioLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
         {
-            Id = id;
             OnBytes = onBytes;
             Connection = socket;
             IoLoop = ioLoop;

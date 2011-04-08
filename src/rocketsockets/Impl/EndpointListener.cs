@@ -30,7 +30,7 @@ namespace rocketsockets
         public void Start() 
         {
             Running = true;
-            Listener = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP );
+            Listener = new Socket( System.Net.Sockets.AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.IP );
             Listener.Bind( ServerEndpoint );
             Listener.Listen( 10000 );
             WaitForConnection();

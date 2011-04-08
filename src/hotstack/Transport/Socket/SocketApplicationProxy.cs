@@ -15,8 +15,9 @@ namespace hotstack.Transport.Socket
         public HttpServerConfiguration Configuration { get; set; }
         public IRouteRequest Router { get; set; }
 
-        public Action AddSocket( string id, ISocketHandle socket )
+        public Action AddSocket( ISocketHandle socket )
         {
+            var id = socket.Id;
             Clients.AddOrUpdate( id, 
                 x => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest }, 
                 ( x, y ) => new SocketClient() { Id = id, Socket = socket, Next = ParseRequest } );

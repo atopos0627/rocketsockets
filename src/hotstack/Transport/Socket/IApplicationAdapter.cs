@@ -5,7 +5,7 @@ namespace hotstack.Transport.Socket
 {
     public interface IApplicationAdapter
     {
-        Action AddSocket( string id, ISocketHandle socket );
+        Action AddSocket( ISocketHandle socket );
         void HandleNextRead( string id, ArraySegment<byte> bytes );
     }
 }

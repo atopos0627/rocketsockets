@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Symbiote.Core.Extensions;
@@ -16,82 +17,17 @@ namespace rocketsockets
         public IEventLoop DisposeEventLoop { get; set; }
         public IEventLoop ApplicationEventLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
-        public List<Socket> Listeners { get; set; }
+        public List<ISocket> Listeners { get; set; }
         
-        public void Bind( IEndpointConfiguration configuration )
+        public void OnSocket( ISocket socket ) 
         {
-            "Binding to endpoint {0}:{1}"
-                .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
-
-            try
-            {
-                var socket = new Socket( 
-                    AddressFamily.InterNetwork, 
-                    SocketType.Stream,
-                    ProtocolType.IP );
-                var address = configuration.AnyInterface 
-                                  ? IPAddress.Any 
-                                  : IPAddress.Parse( configuration.BindTo );
-                var endpoint = new IPEndPoint( address, configuration.Port );
-                socket.Bind( endpoint );
-                socket.Listen( 10000 );
-                ListenTo( socket );
-            }
-            catch (Exception e)
-            {
-                "Binding to endpoint {0}:{1} FAILED."
-                    .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
-            }
-        }
-
-        public void ListenTo( Socket socket )
-        {
-            try
-            {
-                if( Running )
-                {
-                    "Listening to socket {0}"
-                        .ToDebug<ISocketServer>( socket.LocalEndPoint.ToString() );
-                    socket.BeginAccept( OnClient, socket );
-                }
-            }
-            catch (Exception e)
-            {
-                "FAILURE while attempting to listen to socket {0}"
-                    .ToDebug<ISocketServer>( socket.LocalEndPoint.ToString() );
-            }
-        }
-
-        public void OnClient( IAsyncResult result )
-        {
-            try
-            {
-                var listener = result.AsyncState as Socket;
-                var socket = listener.EndAccept( result );
-                "Socket connection on {0} to client @ {1}"
-                    .ToDebug<ISocketServer>( listener.LocalEndPoint.ToString(), socket.RemoteEndPoint.ToString() );
-                ListenTo( listener );
-                OnSocket( socket );
-            }
-            catch ( Exception ex )
-            {
-                "Error occurred while establishing connection to client: \r\n\t {0}"
-                    .ToDebug<ISocketServer>( ex );
-            }
-        }
-
-        public void OnSocket( Socket socket ) 
-        {
-            var adapter = new SocketAdapter( socket, Configuration );
-            var id = socket.RemoteEndPoint.ToString();
             var handle = new SocketHandle( 
-                id, 
-                adapter, 
+                socket,
                 SocketEventLoop, 
                 DisposeEventLoop,
                 (x, y) => ApplicationEventLoop.Enqueue( () => OnBytes( x, y ) ) 
             );
-            OnConnection( id, handle );
+            OnConnection( handle );
         }
 
         public void Start( OnConnectionReceived onConnection, OnBytesReceived onBytes )
@@ -105,9 +41,16 @@ namespace rocketsockets
             SocketEventLoop.Start( 1 );
             ApplicationEventLoop.Start( 1 );
             //DisposeEventLoop.Start( 1 );
-            Configuration
+            Listeners = Configuration
                 .Endpoints
-                .ForEach( Bind );
+                .Select( x =>
+                {
+                    ISocket socket = new DotNetSocketAdapter( x, Configuration );
+                    //ISocket socket = new Win32SocketAdapter( x, Configuration );
+                    socket.ListenTo( OnSocket );
+                    return socket;
+                })
+                .ToList();
         }
 
         public void Stop()
@@ -115,12 +58,13 @@ namespace rocketsockets
             Running = false;
             SocketEventLoop.Stop();
             ApplicationEventLoop.Stop();
+            Listeners.ForEach( x => x.Close() );
+            Listeners.Clear();
         }
 
         public SocketServer( IServerConfiguration configuration )
         {
             Configuration = configuration;
-            Listeners = new List<Socket>( configuration.Endpoints.Count );
         }
     }
 }
