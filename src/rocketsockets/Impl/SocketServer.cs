@@ -19,6 +19,12 @@ namespace rocketsockets
         public OnBytesReceived OnBytes { get; set; }
         public List<ISocket> Listeners { get; set; }
         
+        public ushort MakeWord ( byte pValueLow, byte pValueHigh )
+        {
+            var array = new [] { pValueLow, pValueHigh };
+            return BitConverter.ToUInt16( array, 0 );
+        }
+
         public void OnSocket( ISocket socket ) 
         {
             var handle = new SocketHandle( 
@@ -65,6 +71,8 @@ namespace rocketsockets
         public SocketServer( IServerConfiguration configuration )
         {
             Configuration = configuration;
+            WSAData data;
+            Native.WSAStartup( MakeWord( 2, 0 ), out data );
         }
     }
 }
