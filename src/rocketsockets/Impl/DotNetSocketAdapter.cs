@@ -96,10 +96,9 @@ namespace rocketsockets
                     {
                         //Connection.LingerState.Enabled = true;
                         //Connection.Close( 0 );
-
+                        Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
                         var gch = GCHandle.Alloc( Connection );
-                        var nativeSoquette = GCHandle.ToIntPtr( gch );
-                        var sock = (SOCKET) nativeSoquette.ToInt32();
+                        var sock = new SOCKET( GCHandle.ToIntPtr( gch ) );
                         Native.closesocket( sock );
                     }
 
@@ -111,6 +110,10 @@ namespace rocketsockets
                     OnWriteCompleted = null;
 					
                     Bytes = new byte[0];
+                }
+                catch( Exception ex ) 
+                {
+                    Console.WriteLine( "poop" );
                 }
                 finally
                 {

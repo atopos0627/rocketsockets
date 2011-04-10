@@ -296,15 +296,20 @@ namespace rocketsockets
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public class WSAData 
+    public struct WSAData
     {
-        public Int16 wVersion;
-        public Int16 wHighVersion;  
-        public String szDescription;  
-        public String szSystemStatus;  
-        public Int16 iMaxSockets;  
-        public Int16 iMaxUdpDg;  
-        public IntPtr lpVendorInfo;
+        public Int16 version;
+        public Int16 highVersion;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 257)]
+        public String description;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 129)]
+        public String systemStatus;
+
+        public Int16 maxSockets;
+        public Int16 maxUdpDg;
+        public IntPtr vendorInfo;
     }
 
     [ StructLayout( LayoutKind.Sequential, CharSet=CharSet.Auto )]
@@ -354,10 +359,17 @@ namespace rocketsockets
     public unsafe struct SOCKET
     {
         private void* handle;
+
         private SOCKET(int _handle)
         {
             handle = (void*)_handle;
         }
+
+        public SOCKET(IntPtr _handle)
+        {
+            handle = _handle.ToPointer();
+        }
+
         public static bool operator ==(SOCKET s, int i)
         {
             return ((int)s.handle == i);
@@ -366,10 +378,12 @@ namespace rocketsockets
         {
             return ((int)s.handle != i);
         }
+        
         public static implicit operator SOCKET(int i)
         {
             return new SOCKET(i);
         }
+
         public static implicit operator uint(SOCKET s)
         {
             return (uint)s.handle;
@@ -426,31 +440,46 @@ namespace rocketsockets
         public const int SOCKET_ERROR = -1;
         public const int INVALID_SOCKET = ~0;
 
-        [DllImport("Ws2_32.dll")]
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int WSAStartup(ushort Version, out WSAData Data);
-        [DllImport("Ws2_32.dll")]
+
+        [DllImport("ws2_32.dll",CharSet = CharSet.Auto, SetLastError=true)]
+        public static extern Int32 WSACleanup();
+
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern SocketError WSAGetLastError();
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern SOCKET socket(AddressFamily af, SocketType type, ProtocolType protocol);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int send(SOCKET s, byte* buf, int len, int flags);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int recv(SOCKET s, byte* buf, int len, int flags);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern SOCKET accept(SOCKET s, void* addr, int addrsize);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int listen(SOCKET s, int backlog);
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Ansi)]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern uint inet_addr(string cp);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern ushort htons(ushort hostshort);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int connect(SOCKET s, sockaddr_in* addr, int addrsize);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int closesocket(SOCKET s);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int getpeername(SOCKET s, sockaddr_in* addr, int* addrsize);
-        [DllImport("Ws2_32.dll")]
+        
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
         public static extern int bind(SOCKET s, sockaddr_in* addr, int addrsize);
         
         //[DllImport("Ws2_32.dll")]

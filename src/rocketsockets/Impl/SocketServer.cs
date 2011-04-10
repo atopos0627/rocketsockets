@@ -7,8 +7,9 @@ using Symbiote.Core.Extensions;
 
 namespace rocketsockets
 {
-    public class SocketServer
-        : ISocketServer
+    public class SocketServer :
+        ISocketServer,
+        IDisposable
     {
         public IServerConfiguration Configuration { get; set; }
         public OnConnectionReceived OnConnection { get; set; }
@@ -61,6 +62,7 @@ namespace rocketsockets
 
         public void Stop()
         {
+            Native.WSACleanup();
             Running = false;
             SocketEventLoop.Stop();
             ApplicationEventLoop.Stop();
@@ -71,8 +73,14 @@ namespace rocketsockets
         public SocketServer( IServerConfiguration configuration )
         {
             Configuration = configuration;
-            WSAData data;
+            var data = new WSAData() { highVersion = 2, version = 2 };
             Native.WSAStartup( MakeWord( 2, 0 ), out data );
+        }
+
+        public void Dispose()
+        {
+            if( Running )
+                Stop();
         }
     }
 }
