@@ -14,7 +14,8 @@ namespace rocketsockets
         public IServerConfiguration Configuration { get; set; }
         public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
-        public IEventLoop SocketEventLoop { get; set; }
+        public IEventLoop ReadEventLoop { get; set; }
+        public IEventLoop WriteEventLoop { get; set; }
         public IEventLoop ClientEventLoop { get; set; }
         public IEventLoop DisposeEventLoop { get; set; }
         public IEventLoop ApplicationEventLoop { get; set; }
@@ -31,7 +32,8 @@ namespace rocketsockets
         {
             var handle = new SocketHandle( 
                 socket,
-                SocketEventLoop, 
+                ReadEventLoop,
+                WriteEventLoop,
                 DisposeEventLoop,
                 (x, y) => ApplicationEventLoop.Enqueue( () => OnBytes( x, y ) ) 
             );
@@ -43,14 +45,16 @@ namespace rocketsockets
             Running = true;
             OnConnection = onConnection;
             OnBytes = onBytes;
-            SocketEventLoop = new EventLoop();
+            ReadEventLoop = new EventLoop();
+            WriteEventLoop = new EventLoop();
             ClientEventLoop = new EventLoop();
             ApplicationEventLoop = new EventLoop();
             DisposeEventLoop = new EventLoop();
-            SocketEventLoop.Start( 2 );
+            ReadEventLoop.Start( 1 );
+            WriteEventLoop.Start( 1 );
             ApplicationEventLoop.Start( 1 );
-            DisposeEventLoop.Start( 3 );
-            ClientEventLoop.Start( 4 );
+            DisposeEventLoop.Start( 1 );
+            ClientEventLoop.Start( 1 );
             Listeners = Configuration
                 .Endpoints
                 .Select( x =>
@@ -67,7 +71,7 @@ namespace rocketsockets
         {
             // Native.WSACleanup();
             Running = false;
-            SocketEventLoop.Stop();
+            ReadEventLoop.Stop();
             ApplicationEventLoop.Stop();
             Listeners.ForEach( x => x.Close() );
             Listeners.Clear();
