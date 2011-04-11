@@ -46,7 +46,16 @@
   <ItemGroup>
     <Compile Include="Config\EndpointConfiguration.cs" />
     <Compile Include="Config\EndpointConfigurator.cs" />
-    <Compile Include="Impl\Win32SocketAdapter.cs" />
+    <Compile Include="Impl\Win32\AddressFamily.cs" />
+    <Compile Include="Impl\Win32\fd_set.cs" />
+    <Compile Include="Impl\Win32\linger.cs" />
+    <Compile Include="Impl\Win32\Native.cs" />
+    <Compile Include="Impl\Win32\ProtocolType.cs" />
+    <Compile Include="Impl\Win32\sockaddr_in.cs" />
+    <Compile Include="Impl\Win32\SOCKET.cs" />
+    <Compile Include="Impl\Win32\SocketFlags.cs" />
+    <Compile Include="Impl\Win32\SocketType.cs" />
+    <Compile Include="Impl\Win32\Win32SocketAdapter.cs" />
     <Compile Include="Impl\EndpointListener.cs" />
     <Compile Include="Config\IConfigurator.cs" />
     <Compile Include="Config\IConfigureEndpoint.cs" />
@@ -58,6 +67,11 @@
     <Compile Include="Config\IServerConfiguration.cs" />
     <Compile Include="Impl\OnBytesReceived.cs" />
     <Compile Include="Impl\IEventLoop.cs" />
+    <Compile Include="Impl\Win32\WSABUF.cs" />
+    <Compile Include="Impl\Win32\WSAData.cs" />
+    <Compile Include="Impl\Win32\WSAPROTOCOLCHAIN.cs" />
+    <Compile Include="Impl\Win32\WSAPROTOCOL_INFO.cs" />
+    <Compile Include="Impl\Win32\WSAQUERYSET.cs" />
     <Compile Include="ISocket.cs" />
     <Compile Include="ISocketHandle.cs" />
     <Compile Include="ISocketServer.cs" />

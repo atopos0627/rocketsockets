@@ -24,8 +24,8 @@ namespace hawtness
                                                                    h.DefineApplication<HelloWorld>( r => true );
                                                                } );
                                } )
-                //.AddConsoleLogger<ISocketServer>( x => x.Debug().MessageLayout( p => p.Message().Newline() ) )
-                //.AddColorConsoleLogger<ISocketHandle>( x => x.Debug().MessageLayout( p => p.Message().Newline() ).DefineColor().BackGround.IsGreen().Text.IsBlack() )
+                .AddConsoleLogger<ISocketServer>( x => x.Debug().MessageLayout( p => p.Message().Newline() ) )
+                .AddColorConsoleLogger<ISocketHandle>( x => x.Debug().MessageLayout( p => p.Message().Newline() ).DefineColor().BackGround.IsGreen().Text.IsBlack() )
                 .Daemon( x => x.Arguments( args ).Name( "hawtness" ) )
                 .RunDaemon();
         }

@@ -62,7 +62,7 @@ namespace rocketsockets
 
         public void Stop()
         {
-            Native.WSACleanup();
+            // Native.WSACleanup();
             Running = false;
             SocketEventLoop.Stop();
             ApplicationEventLoop.Stop();
@@ -74,7 +74,7 @@ namespace rocketsockets
         {
             Configuration = configuration;
             var data = new WSAData() { highVersion = 2, version = 2 };
-            Native.WSAStartup( MakeWord( 2, 0 ), out data );
+            // Native.WSAStartup( MakeWord( 2, 0 ), out data );
         }
 
         public void Dispose()

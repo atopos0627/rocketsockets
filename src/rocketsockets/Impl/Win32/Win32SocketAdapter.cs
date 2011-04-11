@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Symbiote.Core.Extensions;
-using SocketError = System.Net.Sockets.SocketError;
 
 namespace rocketsockets
 {
-    public class DotNetSocketAdapter
+    public unsafe class Win32SocketAdapter
         : ISocket
     {
         public string Id { get; set; }
 
         public IServerConfiguration Configuration { get; set; }
-        public Socket Connection { get; set; }
+        public SOCKET Connection { get; set; }
         public Stream SocketStream { get; set; }
 		
         public byte[] Bytes { get; set; }
@@ -34,28 +32,43 @@ namespace rocketsockets
         public Action<ISocket> OnSocket { get; set; }
         public Action OnWriteCompleted { get; set; }
 
+        public const int INVALID_SOCKET = -1;
+
         public void AddCloseCallback( Action onClose )
         {
             OnDisconnect.Add( onClose );
         }
 
-        public Socket Bind( IEndpointConfiguration configuration )
+        public SOCKET Bind( IEndpointConfiguration configuration )
         {
+            SOCKET socket = INVALID_SOCKET;
             "Binding to endpoint {0}:{1}"
                 .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
 
             try
             {
-                var socket = new Socket( 
-                    System.Net.Sockets.AddressFamily.InterNetwork, 
-                    System.Net.Sockets.SocketType.Stream,
-                    System.Net.Sockets.ProtocolType.IP );
-                var address = configuration.AnyInterface 
-                                  ? IPAddress.Any 
-                                  : IPAddress.Parse( configuration.BindTo );
-                var endpoint = new IPEndPoint( address, configuration.Port );
-                socket.Bind( endpoint );
-                socket.Listen( 1000 );
+                WSAPROTOCOL_INFO info = new WSAPROTOCOL_INFO();
+                
+                Native.WSASocket(
+                        (int) AddressFamily.InterNetworkv4,
+                        (int) SocketType.Stream,
+                        (int) ProtocolType.Tcp,
+                        out info,
+                        0,
+                        (int) SocketFlags.Overlapped
+                    );
+
+                var address = Native.inet_addr( configuration.AnyInterface 
+                                  ? "0.0.0.0"
+                                  : configuration.BindTo );
+                var port = Native.htons( (ushort) configuration.Port );
+                sockaddr_in socket_address = new sockaddr_in();
+                socket_address.sin_addr.S_addr = address;
+                socket_address.sin_port = port;
+                socket_address.sin_family = (short) AddressFamily.InterNetworkv4;
+
+                Native.bind( socket, &socket_address, sizeof ( sockaddr_in ) );
+                Native.listen( socket, 10000 );
                 return socket;
             }
             catch (Exception e)
@@ -63,7 +76,7 @@ namespace rocketsockets
                 "Binding to endpoint {0}:{1} FAILED."
                     .ToDebug<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
             }
-            return null;
+            return socket;
         }
 
         public void Close()
@@ -77,16 +90,16 @@ namespace rocketsockets
                     if( WriteHandle != null && WriteHandle.AsyncWaitHandle != null && !WriteHandle.IsCompleted )
                         WriteHandle.AsyncWaitHandle.WaitOne();
 					
-                    if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null && !ReadHandle.IsCompleted )
-                    {
-                        ReadHandle.AsyncWaitHandle.Close();
-                        ReadHandle.AsyncWaitHandle.Dispose();
-                    }
-
                     if( SocketStream != null )
                     {
                         SocketStream.Flush();
                         SocketStream.Close();
+                    }
+
+                    if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null && !ReadHandle.IsCompleted )
+                    {
+                        ReadHandle.AsyncWaitHandle.Close();
+                        ReadHandle.AsyncWaitHandle.Dispose();
                     }
 
                     if( Listener != null && Listener.Status == TaskStatus.Running )
@@ -94,14 +107,13 @@ namespace rocketsockets
 
                     if( Connection != null )
                     {
-                        Connection.LingerState.Enabled = false;
-                        Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
-                        // Connection.LingerState.Enabled = false;
-                        Connection.Close( -1 );
+                        //Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
+                        //Connection.LingerState.Enabled = false;
+                        //Connection.Close( -1 );
                         //var gch = GCHandle.Alloc( Connection );
                         //var sock = new SOCKET( GCHandle.ToIntPtr( gch ) );
                         //Native.closesocket( sock );
-                        Connection = null;
+                        
                     }
 
                     OnDisconnect.ForEach( x => x() );
@@ -131,14 +143,14 @@ namespace rocketsockets
                 if( Listening )
                 {
                     "Listening to socket {0}"
-                        .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
-                    Connection.BeginAccept( OnClient, null );
+                        .ToDebug<ISocketServer>(  );
+                    // Connection.BeginAccept( OnClient, null );
                 }
             }
             catch (Exception e)
             {
-                "FAILURE while attempting to listen to socket {0}"
-                    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
+                //"FAILURE while attempting to listen to socket {0}"
+                //    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
             }
         }
 
@@ -153,13 +165,13 @@ namespace rocketsockets
         {
             try
             {
+                //var socket = Connection.EndAccept( result );
                 Listen();
-                var socket = Connection.EndAccept( result );
-                var id = socket.RemoteEndPoint.ToString();
-                var adapter = new DotNetSocketAdapter( socket, Configuration );
-                "Socket connection on {0} to client @ {1}"
-                    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString(), id );
-                OnSocket( adapter );
+                //var id = socket.RemoteEndPoint.ToString();
+                //var adapter = new DotNetSocketAdapter( socket, Configuration );
+                //"Socket connection on {0} to client @ {1}"
+                //    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString(), id );
+                //OnSocket( adapter );
             }
             catch ( Exception ex )
             {
@@ -257,16 +269,15 @@ namespace rocketsockets
             }
         }
 
-        public DotNetSocketAdapter( Socket connection, IServerConfiguration configuration )
+        public Win32SocketAdapter( SOCKET connection, IServerConfiguration configuration )
         {
             try 
             {
                 //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
-                Id = connection.RemoteEndPoint.ToString();
                 Configuration = configuration;
                 Connection = connection;
                 Bytes = new byte[configuration.ReadBufferSize];
-                SocketStream = new NetworkStream( connection );
+                //SocketStream = new NetworkStream( connection );
                 OnDisconnect = new List<Action>();
             } 
             catch (Exception ex) 
@@ -275,7 +286,7 @@ namespace rocketsockets
             }
         }
 
-        public DotNetSocketAdapter( IEndpointConfiguration endpoint, IServerConfiguration configuration )
+        public Win32SocketAdapter( IEndpointConfiguration endpoint, IServerConfiguration configuration )
         {
             try 
             {
@@ -283,8 +294,9 @@ namespace rocketsockets
                 Configuration = configuration;
                 Connection = Bind( endpoint );
                 Bytes = new byte[configuration.ReadBufferSize];
+                //SocketStream = new NetworkStream( Connection );
                 OnDisconnect = new List<Action>();
-            }
+            } 
             catch (Exception ex) 
             {
                 Console.WriteLine( ex );
@@ -299,7 +311,7 @@ namespace rocketsockets
             }
         }
 		
-        ~DotNetSocketAdapter()
+        ~Win32SocketAdapter()
         {
             //Console.WriteLine( "Remaining {1}: {0}", --Total, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
         }
