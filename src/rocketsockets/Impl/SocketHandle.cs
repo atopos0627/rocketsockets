@@ -48,7 +48,7 @@ namespace rocketsockets
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            IoLoop.Enqueue( () => 
+            DisposeLoop.Enqueue( () => 
                 Connection.Write(
                             segment,
                             onComplete,

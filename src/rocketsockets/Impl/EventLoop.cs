@@ -10,13 +10,15 @@ namespace rocketsockets
     {
         public bool Running { get; set; }
         public ConcurrentQueue<Action> ActionQueue { get; set; }
+        public ManualResetEventSlim Wait { get; set; }
+        public CancellationToken Cancel { get; set; }
         
         public void Loop()
         {
+            Action action = null;
             while( Running )
             {
-                Action action = null;
-                if( ActionQueue.Count > 0 && ActionQueue.TryDequeue( out action ) )
+                if( ActionQueue.TryDequeue( out action ) )
                 {
                     try
                     {
@@ -29,7 +31,9 @@ namespace rocketsockets
                 }
                 else 
                 {
-                    Thread.Sleep( 1 );
+                    //Thread.Sleep( 0 );
+                    Wait.Reset();
+                    Wait.Wait( Cancel );
                 }
             }
         }
@@ -37,6 +41,7 @@ namespace rocketsockets
         public void Enqueue( Action action ) 
         {
             ActionQueue.Enqueue( action );
+            Wait.Set();
         }
 
         public void Start( int workers ) 
@@ -49,11 +54,14 @@ namespace rocketsockets
         public void Stop() 
         {
             Running = false;
+            Cancel.WaitHandle.Close();
         }
 
         public EventLoop( ) 
         {
             ActionQueue = new ConcurrentQueue<Action>();
+            Wait = new ManualResetEventSlim( false, 10 );
+            Cancel = new CancellationToken();
         }
     }
 }

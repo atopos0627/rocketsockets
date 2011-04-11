@@ -15,6 +15,7 @@ namespace rocketsockets
         public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
         public IEventLoop SocketEventLoop { get; set; }
+        public IEventLoop ClientEventLoop { get; set; }
         public IEventLoop DisposeEventLoop { get; set; }
         public IEventLoop ApplicationEventLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
@@ -43,16 +44,18 @@ namespace rocketsockets
             OnConnection = onConnection;
             OnBytes = onBytes;
             SocketEventLoop = new EventLoop();
+            ClientEventLoop = new EventLoop();
             ApplicationEventLoop = new EventLoop();
             DisposeEventLoop = new EventLoop();
-            SocketEventLoop.Start( 1 );
+            SocketEventLoop.Start( 2 );
             ApplicationEventLoop.Start( 1 );
-            //DisposeEventLoop.Start( 1 );
+            DisposeEventLoop.Start( 3 );
+            ClientEventLoop.Start( 4 );
             Listeners = Configuration
                 .Endpoints
                 .Select( x =>
                 {
-                    ISocket socket = new DotNetSocketAdapter( x, Configuration );
+                    ISocket socket = new DotNetSocketAdapter( ClientEventLoop, x, Configuration );
                     //ISocket socket = new Win32SocketAdapter( x, Configuration );
                     socket.ListenTo( OnSocket );
                     return socket;

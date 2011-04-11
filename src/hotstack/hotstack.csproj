@@ -55,6 +55,9 @@
     <Compile Include="IApplication.cs" />
     <Compile Include="Owin\IBuildResponse.cs" />
     <Compile Include="MissingApplicationException.cs" />
+    <Compile Include="Owin\Impl\ConsumableSegment.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Owin\OwinApplication.cs" />
     <Compile Include="Owin\OwinBody.cs" />
     <Compile Include="Owin\OwinResponse.cs" />
@@ -62,7 +65,6 @@
     <Compile Include="Owin\Impl\ApplicationFactory.cs" />
     <Compile Include="Transport\Socket\IApplicationAdapter.cs" />
     <Compile Include="Owin\Impl\ApplicationRouter.cs" />
-    <Compile Include="Owin\Impl\ConsumableSegment.cs" />
     <Compile Include="Owin\Impl\HeaderBuilder.cs" />
     <Compile Include="Owin\Http\HttpConstants.cs" />
     <Compile Include="Owin\Http\HttpStatus.cs" />

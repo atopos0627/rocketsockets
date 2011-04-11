@@ -10,7 +10,7 @@ namespace hotstack.Owin.Impl
         
         public T[] Array { get; set; }
 
-        public int Offset 
+        public int Offset
         {
             get { return _offset; }
             set 
@@ -29,9 +29,9 @@ namespace hotstack.Owin.Impl
             get { return _length; }
         }
 
-        private bool SetOffset( int value )
+        public bool SetOffset( int value )
         {
-            if( value < _length && value >= 0 )
+            if( value < _length )
             {
                 _offset = value;
                 _count = _length - _offset - 1;
@@ -40,10 +40,14 @@ namespace hotstack.Owin.Impl
             return false;
         }
 
-        public bool Next()
+        public static ConsumableSegment<T> operator ++( ConsumableSegment<T> segment )
         {
-            var test = _offset + 1;
-            return SetOffset( test );
+            if( segment._count > 0 )
+            {
+                segment._offset++;
+                segment._count--;
+            }
+            return segment;
         }
 
         public ConsumableSegment( T[] originalArray ) : this ( originalArray, 0, originalArray.Length )

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -27,6 +28,7 @@ namespace rocketsockets
         public IAsyncResult ReadHandle { get; set; }
         public IAsyncResult WriteHandle { get; set; }
         public Task Listener { get; set; }
+        public IEventLoop ClientEventLoop { get; set; }
 
         public Action<ArraySegment<byte>> OnBytes { get; set; }
         public List<Action> OnDisconnect { get; set; }
@@ -74,14 +76,14 @@ namespace rocketsockets
                 Listening = false;
                 try
                 {
-                    if( WriteHandle != null && WriteHandle.AsyncWaitHandle != null && !WriteHandle.IsCompleted )
-                        WriteHandle.AsyncWaitHandle.WaitOne();
+                    //if( WriteHandle != null && WriteHandle.AsyncWaitHandle != null && !WriteHandle.IsCompleted )
+                    //    WriteHandle.AsyncWaitHandle.WaitOne();
 					
-                    if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null && !ReadHandle.IsCompleted )
-                    {
-                        ReadHandle.AsyncWaitHandle.Close();
-                        ReadHandle.AsyncWaitHandle.Dispose();
-                    }
+                    //if( ReadHandle != null && ReadHandle.AsyncWaitHandle != null && !ReadHandle.IsCompleted )
+                    //{
+                    //    ReadHandle.AsyncWaitHandle.Close();
+                    //    ReadHandle.AsyncWaitHandle.Dispose();
+                    //}
 
                     if( SocketStream != null )
                     {
@@ -96,11 +98,7 @@ namespace rocketsockets
                     {
                         Connection.LingerState.Enabled = false;
                         Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
-                        // Connection.LingerState.Enabled = false;
                         Connection.Close( -1 );
-                        //var gch = GCHandle.Alloc( Connection );
-                        //var sock = new SOCKET( GCHandle.ToIntPtr( gch ) );
-                        //Native.closesocket( sock );
                         Connection = null;
                     }
 
@@ -124,14 +122,20 @@ namespace rocketsockets
             }
         }
 
+        public void HandleClient( Socket socket )
+        {
+            var adapter = new DotNetSocketAdapter( socket, Configuration );
+            OnSocket( adapter );
+        }
+
         public void Listen() 
         {
             try
             {
                 if( Listening )
                 {
-                    "Listening to socket {0}"
-                        .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
+                    //"Listening to socket {0}"
+                    //    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
                     Connection.BeginAccept( OnClient, null );
                 }
             }
@@ -142,11 +146,28 @@ namespace rocketsockets
             }
         }
 
+        public void ListenLoop()
+        {
+            while ( Listening )
+            {
+                try
+                {
+                    var client = Connection.Accept();
+                    ClientEventLoop.Enqueue( () => HandleClient( client ) );
+                }
+                catch ( Exception )
+                {
+                    "FAILURE while attempting to listen to socket {0}"
+                        .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString() );
+                }
+            }
+        }
+
         public void ListenTo( Action<ISocket> onSocket )
         {
             Listening = true;
             OnSocket = onSocket;
-            var task = Task.Factory.StartNew( Listen );
+            var task = Task.Factory.StartNew( ListenLoop );
         }
 
         public void OnClient( IAsyncResult result )
@@ -155,10 +176,9 @@ namespace rocketsockets
             {
                 Listen();
                 var socket = Connection.EndAccept( result );
-                var id = socket.RemoteEndPoint.ToString();
                 var adapter = new DotNetSocketAdapter( socket, Configuration );
-                "Socket connection on {0} to client @ {1}"
-                    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString(), id );
+                //"Socket connection on {0} to client @ {1}"
+                //    .ToDebug<ISocketServer>( Connection.LocalEndPoint.ToString(), id );
                 OnSocket( adapter );
             }
             catch ( Exception ex )
@@ -262,7 +282,8 @@ namespace rocketsockets
             try 
             {
                 //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
-                Id = connection.RemoteEndPoint.ToString();
+                //Id = connection.RemoteEndPoint.ToString();
+                Id = Guid.NewGuid().ToString();
                 Configuration = configuration;
                 Connection = connection;
                 Bytes = new byte[configuration.ReadBufferSize];
@@ -275,11 +296,12 @@ namespace rocketsockets
             }
         }
 
-        public DotNetSocketAdapter( IEndpointConfiguration endpoint, IServerConfiguration configuration )
+        public DotNetSocketAdapter( IEventLoop clientLoop, IEndpointConfiguration endpoint, IServerConfiguration configuration )
         {
             try 
             {
                 //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
+                ClientEventLoop = clientLoop;
                 Configuration = configuration;
                 Connection = Bind( endpoint );
                 Bytes = new byte[configuration.ReadBufferSize];

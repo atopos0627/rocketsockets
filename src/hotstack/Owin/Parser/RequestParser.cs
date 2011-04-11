@@ -10,6 +10,16 @@ namespace hotstack.Owin.Parser
     public class RequestParser
         : HttpConstants
     {
+        public static bool AreHeadersFinished( ConsumableSegment<byte> buffer )
+        {
+            return ( buffer.Array[buffer.Offset] != CR && buffer.Array[buffer.Offset + 2] != CR );
+        }
+
+        public static bool MoveToNextByteIfAble( ConsumableSegment<byte> buffer )
+        {
+            return buffer.Count > 0 ? ( buffer ++ ).Offset > 0 : false;
+        }
+
         public static void PopulateRequest( Request request, ConsumableSegment<byte> arraySegment )
         {
             while( arraySegment.Count > 0 )
@@ -21,6 +31,7 @@ namespace hotstack.Owin.Parser
             if( request.OnBody != null )
                 request.OnBody( buffer );
             buffer.Offset += buffer.Count;
+            //buffer.SetOffset( buffer.Offset + buffer.Count );
         }
 
         public static void ParseHeaders( Request request, ConsumableSegment<byte> buffer )
@@ -28,7 +39,7 @@ namespace hotstack.Owin.Parser
             request.Headers = new Dictionary<string, string>( StringComparer.CurrentCultureIgnoreCase );
             var length = buffer.Length;
             
-            while ( buffer.Next() && buffer.Offset + 4 < length && ( buffer.Array[buffer.Offset] != CR && buffer.Array[buffer.Offset + 2] != CR ) )
+            while ( MoveToNextByteIfAble( buffer ) && buffer.Offset + 4 < length && AreHeadersFinished( buffer ) )
             {
                 var headerName = ParseValue( buffer, COLON );
                 var value = ParseValue( buffer, CR ).Trim();
@@ -41,13 +52,15 @@ namespace hotstack.Owin.Parser
             if( request.Headers.TryGetValue( "Host", out host ) )
                 request.BaseUri = string.Format( "{0}://{1}", request.Scheme, host );
             
-            while ( buffer.Next() && ( buffer.Array[buffer.Offset] == CR || buffer.Array[buffer.Offset] == LF ) )
+            while ( MoveToNextByteIfAble( buffer ) && ( buffer.Array[buffer.Offset] == CR || buffer.Array[buffer.Offset] == LF ) )
             {
             }
 
             request.HeadersComplete = true;
             request.Parse = PassBodySegmentOn;
         }
+
+        
 
         public static void ParseLine( Request request, ConsumableSegment<byte> buffer )
         {
@@ -61,7 +74,7 @@ namespace hotstack.Owin.Parser
         {
             var length = 1;
             var start = buffer.Offset;
-            while ( buffer.Next() && buffer.Array[ buffer.Offset ] != stopCharacter )
+            while ( MoveToNextByteIfAble( buffer ) && buffer.Array[ buffer.Offset ] != stopCharacter )
             {
                 length++;
             }
@@ -74,7 +87,7 @@ namespace hotstack.Owin.Parser
             var length = 1;
             var count = 0;
             var start = buffer.Offset;
-            while( buffer.Next() && 
+            while( MoveToNextByteIfAble( buffer ) && 
                 ( ( count += buffer.Array[ buffer.Offset ] == SLASH ? 1 : 0 ) < 3 ) )
             {
                 length++;
