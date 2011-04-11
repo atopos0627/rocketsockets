@@ -21,6 +21,7 @@ namespace hawtness
                                    x.RegisterApplications( h =>
                                                                {
                                                                    h.DefineApplication<Gtfo>( r => r.RequestUri.EndsWith( ".ico" ) );
+                                                                   h.DefineApplication<FileServe>( r => r.RequestUri.Contains( "." ) );
                                                                    h.DefineApplication<HelloWorld>( r => true );
                                                                } );
                                } )
@@ -83,6 +84,27 @@ namespace hawtness
         {
             Response
                 .AppendToBody( "Hellizzle Wizzizzorld! It's da HTTPizzleDizzle Fo' Rizzle, Fo' Shizzle!\r\n" )
+                .Submit( HttpStatus.Ok );
+        }
+    }
+
+    public class FileServe : Application
+    {
+        public override bool HandleRequestSegment(ArraySegment<byte> data,Action continuation)
+        {
+            Console.WriteLine( "Got some datums for you!" );
+            return base.HandleRequestSegment(data,continuation);
+        }
+
+        public override void OnError( Exception exception )
+        {
+            Console.WriteLine( "An exception occurred during the processing of an application. Sad faec" );
+        }
+
+        public override void CompleteResponse()
+        {
+            Response
+                .AppendFileContentToBody( @"files\test.htm" )
                 .Submit( HttpStatus.Ok );
         }
     }
