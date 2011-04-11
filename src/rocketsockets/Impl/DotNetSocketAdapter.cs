@@ -99,6 +99,7 @@ namespace rocketsockets
                         Connection.LingerState.Enabled = false;
                         Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
                         Connection.Close( -1 );
+                        Connection.Dispose();
                         Connection = null;
                     }
 
@@ -213,6 +214,7 @@ namespace rocketsockets
                 if( !Disposed )
                 {
                     SocketStream.EndWrite( result );
+                    SocketStream.Flush();
                     OnWriteCompleted();
                 }
                 else if(WriteHandle != null && WriteHandle.AsyncWaitHandle != null )

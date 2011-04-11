@@ -9,7 +9,8 @@ namespace rocketsockets
     {
         public string Id { get { return Connection.Id; } }
         public ISocket Connection { get; set; }
-        public IEventLoop IoLoop { get; set; }
+        public IEventLoop ReadLoop { get; set; }
+        public IEventLoop WriteLoop { get; set; }
         public IEventLoop DisposeLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public int ReadCount { get; set; }
@@ -17,19 +18,20 @@ namespace rocketsockets
 
         public void Close() 
         {
-            IoLoop = null;
+            WriteLoop = null;
+            ReadLoop = null;
             OnBytes = null;
             ReadCount = 0;
             WriteCount = 0;
-            Connection.Close();
-            Connection = null;
-            DisposeLoop = null;
-            //DisposeLoop.Enqueue( () =>
-            //{
-            //    Connection.Close();
-            //    Connection = null;
-            //    DisposeLoop = null;
-            //} );
+            //Connection.Close();
+            //Connection = null;
+            //DisposeLoop = null;
+            DisposeLoop.Enqueue( () =>
+            {
+                Connection.Close();
+                Connection = null;
+                DisposeLoop = null;
+            } );
         }
 
         public void HandleReadException( Exception exception ) 
@@ -39,7 +41,7 @@ namespace rocketsockets
 
         public void Read()
         {
-            IoLoop.Enqueue( () => 
+            ReadLoop.Enqueue( () => 
                 Connection.Read( 
                     x => OnBytes( Id, x ), 
                     HandleReadException ) 
@@ -48,7 +50,7 @@ namespace rocketsockets
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            DisposeLoop.Enqueue( () => 
+            WriteLoop.Enqueue( () => 
                 Connection.Write(
                             segment,
                             onComplete,
@@ -56,11 +58,12 @@ namespace rocketsockets
                 );
         }
 		
-        public SocketHandle( ISocket socket, IEventLoop ioLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
+        public SocketHandle( ISocket socket, IEventLoop readLoop, IEventLoop writeLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
         {
             OnBytes = onBytes;
             Connection = socket;
-            IoLoop = ioLoop;
+            ReadLoop = readLoop;
+            WriteLoop = writeLoop;
             DisposeLoop = disposeLoop;
         }
     }
