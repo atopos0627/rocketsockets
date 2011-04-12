@@ -1,9 +1,22 @@
-﻿using System;
+﻿// /* 
+// Copyright 2008-2011 Alex Robson
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using Symbiote.Core.Extensions;
 
 namespace rocketsockets
 {
@@ -20,14 +33,8 @@ namespace rocketsockets
         public IEventLoop DisposeEventLoop { get; set; }
         public IEventLoop ApplicationEventLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
-        public List<ISocket> Listeners { get; set; }
+        public List<ISocketListener> Listeners { get; set; }
         
-        public ushort MakeWord ( byte pValueLow, byte pValueHigh )
-        {
-            var array = new [] { pValueLow, pValueHigh };
-            return BitConverter.ToUInt16( array, 0 );
-        }
-
         public void OnSocket( ISocket socket ) 
         {
             var handle = new SocketHandle( 
@@ -59,8 +66,7 @@ namespace rocketsockets
                 .Endpoints
                 .Select( x =>
                 {
-                    ISocket socket = new DotNetSocketAdapter( ClientEventLoop, x, Configuration );
-                    //ISocket socket = new Win32SocketAdapter( x, Configuration );
+                    ISocketListener socket = new ManagedSocketListener( ClientEventLoop, x, Configuration );
                     socket.ListenTo( OnSocket );
                     return socket;
                 })
@@ -69,9 +75,11 @@ namespace rocketsockets
 
         public void Stop()
         {
-            // Native.WSACleanup();
             Running = false;
             ReadEventLoop.Stop();
+            WriteEventLoop.Stop();
+            DisposeEventLoop.Stop();
+            ClientEventLoop.Stop();
             ApplicationEventLoop.Stop();
             Listeners.ForEach( x => x.Close() );
             Listeners.Clear();
@@ -80,8 +88,6 @@ namespace rocketsockets
         public SocketServer( IServerConfiguration configuration )
         {
             Configuration = configuration;
-            var data = new WSAData() { highVersion = 2, version = 2 };
-            // Native.WSAStartup( MakeWord( 2, 0 ), out data );
         }
 
         public void Dispose()

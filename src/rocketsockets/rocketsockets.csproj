@@ -46,6 +46,8 @@
   <ItemGroup>
     <Compile Include="Config\EndpointConfiguration.cs" />
     <Compile Include="Config\EndpointConfigurator.cs" />
+    <Compile Include="Impl\ISocketListener.cs" />
+    <Compile Include="Impl\ManagedSocketListener.cs" />
     <Compile Include="Impl\Win32\AddressFamily.cs" />
     <Compile Include="Impl\Win32\fd_set.cs" />
     <Compile Include="Impl\Win32\linger.cs" />
@@ -78,7 +80,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Config\ServerConfiguration.cs" />
     <Compile Include="Config\ServerConfigurator.cs" />
-    <Compile Include="Impl\DotNetSocketAdapter.cs" />
+    <Compile Include="Impl\ManagedSocketAdapter.cs" />
     <Compile Include="Impl\SocketHandle.cs" />
     <Compile Include="Impl\SocketServer.cs" />
     <Compile Include="RocketServer.cs" />
