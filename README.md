@@ -101,6 +101,7 @@ To start the rocketsocket server, take a dependency on ISocketServer and control
 -  Add a NuGet package
 -  Introduce load-balanced event-loops.
 -  Finish a native sockets implementation.
+-  Add support for SSL
 -  Add liboio support.
 -  Add more blinky lights and science sounds!
 
