@@ -17,6 +17,24 @@ These two callbacks are just about all your application needs. Let's look at the
 -  Read - enqueues an asynchronous read on an eventloop for the socket (the OnBytesReceived gets invoked once the read completes)
 -  Write - enqeues an asynchronous write on an eventloop for the socket with callbacks for write completion and exceptions
 
+# Configuration
+
+To configure rocketsockets outside of the usual Symbiote stack, this example handles initializing Symbiote's IoC abstraction so that dependency registration will still work.
+
+	using rocketsockets;
+	
+	namespace example
+	{
+		public class Program
+		{
+			static void Main(string[] args)
+			{
+				RocketServer
+					.Configure( x => x.UseDefaultEndpoint() )
+			}		
+		}
+	}
+
 # Works with Symbiote
 
 Already using other Symbiote libraries? Just include the using statement and extend the configuration block:
@@ -80,6 +98,7 @@ To start the rocketsocket server, take a dependency on ISocketServer and control
 	
 # Roadmap
 
+-  Add a NuGet package
 -  Introduce load-balanced event-loops.
 -  Finish a native sockets implementation.
 -  Add liboio support.
