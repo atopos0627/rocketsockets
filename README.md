@@ -1,6 +1,6 @@
 # About
 
-The rocketsockets project is an attempt to create a simple, yet scalable socket server based on event loops. It was created specifically to power OWIN hosts with abstracted, sockety goodness so that as projects like Joyent's OIO mature, they can be used to improve the performance of rocketsockets without having to change how OWIN hosts talk to the network layer.
+The rocketsockets project is an attempt to create a simple, yet scalable socket server based on event loops. It was created specifically to power OWIN hosts with abstracted, sockety goodness so that as projects like Joyent's liboio mature, they can be used to improve the performance of rocketsockets without having to change how OWIN hosts talk to the network layer.
 
 # So Simple
 
@@ -78,6 +78,12 @@ To start the rocketsocket server, take a dependency on ISocketServer and control
 		}
 	}
 	
+# Roadmap
+
+-  Introduce load-balanced event-loops.
+-  Finish a native sockets implementation.
+-  Add liboio support.
+-  Add more blinky lights and science sounds!
 
 # Dependencies
 
@@ -86,4 +92,4 @@ To start the rocketsocket server, take a dependency on ISocketServer and control
 
 # Want to Contribute?
 
-Would love to see improvements to this, primarily around performance improvements. PLEASE FORK IT! Also, feel free to let me know if you have comments or would like help: alex AT sharplearningcurve DOT com. You can also follow me on Twitter if you like rambling geeks: @A_Robson.
+Would love to see improvements to this, primarily around performance. PLEASE FORK IT! Also, feel free to let me know if you have comments or would like help: alex AT sharplearningcurve DOT com. You can also follow me on Twitter if you like rambling geeks: @A_Robson.
