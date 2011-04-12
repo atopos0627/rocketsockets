@@ -40,7 +40,7 @@ Already using other Symbiote libraries? Just include the using statement and ext
 		}
 	}
 	
-To start the rocketsocket server, take a dependency on ISocketServer and control it via the .Start() and .Stop() methods. The following example builds from the previous code block where it's assumed you're using Symbiote.Daemon. The following code block shows how you'd wire rocketsockets into an IDaemon so that it would be automatically started when the service runs. The following service will simply write all events to the console.
+To start the rocketsocket server, take a dependency on ISocketServer and control it via the .Start() and .Stop() methods. The following example builds from the previous code block where it's assumed you're using Symbiote.Daemon. The service shows how you'd wire rocketsockets into an IDaemon so that it would automatically start when the service runs. The service writes all events to the console.
 
 	public class ExampleService : IDaemon
 	{
