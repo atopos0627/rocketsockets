@@ -17,8 +17,9 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using rocketsockets.Config;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class EndpointListener
         : IEndpointListener

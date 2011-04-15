@@ -16,7 +16,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 
-namespace rocketsockets
+namespace rocketsockets.Config
 {
     public class EndpointConfiguration :
         IEndpointConfiguration

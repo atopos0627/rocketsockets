@@ -17,7 +17,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     [ StructLayout( LayoutKind.Sequential, CharSet=CharSet.Auto )]
     public class WSAQUERYSET

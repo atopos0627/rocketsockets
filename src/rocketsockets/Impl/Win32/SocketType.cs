@@ -14,7 +14,7 @@
 // limitations under the License.
 // */
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     public enum SocketType : int
     {

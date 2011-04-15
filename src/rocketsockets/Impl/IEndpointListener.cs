@@ -14,7 +14,7 @@
 // limitations under the License.
 // */
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public interface IEndpointListener
     {

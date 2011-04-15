@@ -17,8 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using rocketsockets.Config;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class SocketServer :
         ISocketServer,

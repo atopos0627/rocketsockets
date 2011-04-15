@@ -16,7 +16,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     [StructLayout(LayoutKind.Sequential, Size=16)]
     public struct sockaddr_in

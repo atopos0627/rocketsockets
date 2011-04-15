@@ -17,12 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading.Tasks;
+using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     public unsafe class Win32SocketAdapter
         : ISocket

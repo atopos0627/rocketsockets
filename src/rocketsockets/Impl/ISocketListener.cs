@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public interface ISocketListener
         : IDisposable

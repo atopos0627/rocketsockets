@@ -2,9 +2,10 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class ManagedSocketListener
         : ISocketListener
@@ -22,9 +23,9 @@ namespace rocketsockets
             try
             {
                 var socket = new Socket( 
-                    System.Net.Sockets.AddressFamily.InterNetwork, 
-                    System.Net.Sockets.SocketType.Stream,
-                    System.Net.Sockets.ProtocolType.IP );
+                   AddressFamily.InterNetwork, 
+                   SocketType.Stream,
+                   ProtocolType.IP );
                 var address = configuration.AnyInterface 
                                   ? IPAddress.Any 
                                   : IPAddress.Parse( configuration.BindTo );
@@ -33,10 +34,11 @@ namespace rocketsockets
                 socket.Listen( 1000 );
                 return socket;
             }
-            catch (Exception e)
+            catch ( Exception ex )
             {
                 "Binding to endpoint {0}:{1} FAILED."
                     .ToError<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
+                throw ex;
             }
             return null;
         }
@@ -88,7 +90,7 @@ namespace rocketsockets
                     Connection.BeginAccept( OnClient, null );
                 }
             }
-            catch (Exception ex )
+            catch ( Exception ex )
             {
                 "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
                     .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
@@ -137,16 +139,9 @@ namespace rocketsockets
 
         public ManagedSocketListener( IEventLoop clientLoop, IEndpointConfiguration endpoint, IServerConfiguration configuration )
         {
-            try 
-            {
-                ClientEventLoop = clientLoop;
-                Configuration = configuration;
-                Connection = Bind( endpoint );
-            }
-            catch (Exception ex) 
-            {
-                Console.WriteLine( ex );
-            }
+            ClientEventLoop = clientLoop;
+            Configuration = configuration;
+            Connection = Bind( endpoint );
         }
 
         public void Dispose()
