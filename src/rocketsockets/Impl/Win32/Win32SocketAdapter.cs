@@ -122,13 +122,8 @@ namespace rocketsockets.Impl.Win32
 
                     if( Connection != null )
                     {
-                        //Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
-                        //Connection.LingerState.Enabled = false;
-                        //Connection.Close( -1 );
-                        //var gch = GCHandle.Alloc( Connection );
-                        //var sock = new SOCKET( GCHandle.ToIntPtr( gch ) );
-                        //Native.closesocket( sock );
-                        
+                        //Native.setsockopt( Connection,  )
+                        Native.closesocket( Connection );
                     }
 
                     OnDisconnect.ForEach( x => x() );
