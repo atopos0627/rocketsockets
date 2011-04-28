@@ -48,8 +48,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventLoopStub.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="with_endpoint_listener.cs" />
+    <Compile Include="SocketStub.cs" />
+    <Compile Include="when_closing_listener.cs" />
+    <Compile Include="when_connecting_to_listener.cs" />
+    <Compile Include="when_reading_causes_exception.cs" />
+    <Compile Include="when_reading_from_socket_handle.cs" />
+    <Compile Include="when_using_default_endpoint.cs" />
+    <Compile Include="when_using_endpoint_configurator.cs" />
+    <Compile Include="when_write_fails.cs" />
+    <Compile Include="when_write_succeeds.cs" />
+    <Compile Include="with_default_endpoint.cs" />
+    <Compile Include="with_endpoint_configurator.cs" />
+    <Compile Include="with_managed_socket_listener.cs" />
+    <Compile Include="with_server_configurator.cs" />
+    <Compile Include="with_socket_handle.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\rocketsockets\rocketsockets.csproj">

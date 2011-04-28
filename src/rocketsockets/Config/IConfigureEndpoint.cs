@@ -14,7 +14,7 @@
 // limitations under the License.
 // */
 
-namespace rocketsockets
+namespace rocketsockets.Config
 {
     public interface IConfigureEndpoint
     {

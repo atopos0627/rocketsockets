@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using rocketsockets.Config;
 using Symbiote.Core.Concurrency;
 using Symbiote.Core.Extensions;
 
@@ -91,8 +92,16 @@ namespace rocketsockets
                 }
                 catch ( Exception ex )
                 {
-                    "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
-                        .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
+                    if( Connection != null )
+                    {
+                        "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
+                            .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
+                    }
+                    else
+                    {
+                        "An exception occurred in Managed Socket Listener; probably due to unexpected shut-down. \r\n\t{0}"
+                            .ToError<ISocketServer>( ex );
+                    }
                 }
             }
         }

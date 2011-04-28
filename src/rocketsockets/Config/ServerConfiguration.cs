@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 
-namespace rocketsockets
+namespace rocketsockets.Config
 {
     public class ServerConfiguration :
         IConfigureServer,

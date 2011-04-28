@@ -17,12 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading.Tasks;
+using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     public unsafe class Win32SocketAdapter
         : ISocket
@@ -123,13 +122,8 @@ namespace rocketsockets
 
                     if( Connection != null )
                     {
-                        //Connection.SetSocketOption( SocketOptionLevel.Socket, SocketOptionName.DontLinger, true );
-                        //Connection.LingerState.Enabled = false;
-                        //Connection.Close( -1 );
-                        //var gch = GCHandle.Alloc( Connection );
-                        //var sock = new SOCKET( GCHandle.ToIntPtr( gch ) );
-                        //Native.closesocket( sock );
-                        
+                        //Native.setsockopt( Connection,  )
+                        Native.closesocket( Connection );
                     }
 
                     OnDisconnect.ForEach( x => x() );

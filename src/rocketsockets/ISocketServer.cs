@@ -15,6 +15,7 @@
 // */
 
 using System;
+using rocketsockets.Impl;
 
 namespace rocketsockets
 {

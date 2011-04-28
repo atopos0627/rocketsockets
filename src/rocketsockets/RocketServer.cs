@@ -15,6 +15,7 @@
 // */
 
 using System;
+using rocketsockets.Config;
 using Symbiote.Core;
 
 namespace rocketsockets

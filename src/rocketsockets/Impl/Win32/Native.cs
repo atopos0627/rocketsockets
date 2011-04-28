@@ -18,7 +18,7 @@ using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     public unsafe partial class Native
     {

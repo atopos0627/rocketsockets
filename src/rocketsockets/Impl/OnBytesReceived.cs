@@ -16,7 +16,7 @@
 
 using System;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public delegate void OnBytesReceived( string receivedFrom, ArraySegment<byte> segment );
 

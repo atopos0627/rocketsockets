@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using rocketsockets.Config;
+using rocketsockets.Impl;
 using Symbiote.Core.Concurrency;
 
 namespace rocketsockets

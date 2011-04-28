@@ -16,7 +16,7 @@
 
 using System;
 
-namespace rocketsockets
+namespace rocketsockets.Config
 {
     public interface IConfigurator
     {

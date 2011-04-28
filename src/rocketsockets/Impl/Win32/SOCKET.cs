@@ -16,7 +16,7 @@
 
 using System;
 
-namespace rocketsockets
+namespace rocketsockets.Impl.Win32
 {
     public unsafe struct SOCKET
     {
