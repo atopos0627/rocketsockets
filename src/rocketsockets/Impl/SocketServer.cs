@@ -21,7 +21,7 @@ using rocketsockets.Config;
 using rocketsockets.Impl;
 using Symbiote.Core.Concurrency;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class SocketServer :
         ISocketServer,

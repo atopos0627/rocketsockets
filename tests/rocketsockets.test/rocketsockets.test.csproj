@@ -59,8 +59,9 @@
     <Compile Include="when_using_endpoint_configurator.cs" />
     <Compile Include="when_write_fails.cs" />
     <Compile Include="when_write_succeeds.cs" />
-    <Compile Include="with_default_endpoint.cs" />
+    <Compile Include="with_default_server_setup.cs" />
     <Compile Include="with_endpoint_configurator.cs" />
+    <Compile Include="with_listener_setup.cs" />
     <Compile Include="with_managed_socket_listener.cs" />
     <Compile Include="with_server_configurator.cs" />
     <Compile Include="with_socket_handle.cs" />

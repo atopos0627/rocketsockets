@@ -6,7 +6,7 @@ using rocketsockets.Config;
 using Symbiote.Core.Concurrency;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class ManagedSocketListener
         : ISocketListener
@@ -35,10 +35,11 @@ namespace rocketsockets
                 socket.Listen( 1000 );
                 return socket;
             }
-            catch (Exception e)
+            catch ( Exception ex )
             {
                 "Binding to endpoint {0}:{1} FAILED."
                     .ToError<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
+                throw ex;
             }
             return null;
         }

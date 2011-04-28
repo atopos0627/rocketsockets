@@ -21,9 +21,8 @@ using System.Net;
 using System.Net.Sockets;
 using rocketsockets.Config;
 using Symbiote.Core.Extensions;
-using SocketError = System.Net.Sockets.SocketError;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class ManagedSocketAdapter
         : ISocket

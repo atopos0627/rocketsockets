@@ -18,7 +18,7 @@ using System;
 using rocketsockets.Impl;
 using Symbiote.Core.Concurrency;
 
-namespace rocketsockets
+namespace rocketsockets.Impl
 {
     public class SocketHandle :
         ISocketHandle
