@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Symbiote.Core.Concurrency;
 using Symbiote.Core.Extensions;
 
 namespace rocketsockets
@@ -79,22 +80,6 @@ namespace rocketsockets
             OnSocket( adapter );
         }
         
-        public void Listen() 
-        {
-            try
-            {
-                if( Listening )
-                {
-                    Connection.BeginAccept( OnClient, null );
-                }
-            }
-            catch (Exception ex )
-            {
-                "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
-                    .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
-            }
-        }
-
         public void ListenLoop()
         {
             while ( Listening )
@@ -117,22 +102,6 @@ namespace rocketsockets
             Listening = true;
             OnSocket = onSocket;
             var task = Task.Factory.StartNew( ListenLoop );
-        }
-
-        public void OnClient( IAsyncResult result )
-        {
-            try
-            {
-                Listen();
-                var socket = Connection.EndAccept( result );
-                var adapter = new ManagedSocketAdapter( socket, Configuration );
-                OnSocket( adapter );
-            }
-            catch ( Exception ex )
-            {
-                "Error occurred while establishing connection to client: \r\n\t {0}"
-                    .ToError<ISocketServer>( ex );
-            }
         }
 
         public ManagedSocketListener( IEventLoop clientLoop, IEndpointConfiguration endpoint, IServerConfiguration configuration )

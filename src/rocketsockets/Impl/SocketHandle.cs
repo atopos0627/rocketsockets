@@ -15,6 +15,7 @@
 // */
 
 using System;
+using Symbiote.Core.Concurrency;
 
 namespace rocketsockets
 {
@@ -37,9 +38,6 @@ namespace rocketsockets
             OnBytes = null;
             ReadCount = 0;
             WriteCount = 0;
-            //Connection.Close();
-            //Connection = null;
-            //DisposeLoop = null;
             DisposeLoop.Enqueue( () =>
             {
                 Connection.Close();
@@ -50,7 +48,7 @@ namespace rocketsockets
 
         public void HandleReadException( Exception exception ) 
         {
-
+            Close();
         }
 
         public void Read()

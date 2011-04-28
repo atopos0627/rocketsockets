@@ -58,17 +58,12 @@
     <Compile Include="Impl\Win32\SocketFlags.cs" />
     <Compile Include="Impl\Win32\SocketType.cs" />
     <Compile Include="Impl\Win32\Win32SocketAdapter.cs" />
-    <Compile Include="Impl\EndpointListener.cs" />
     <Compile Include="Config\IConfigurator.cs" />
     <Compile Include="Config\IConfigureEndpoint.cs" />
     <Compile Include="Config\IConfigureServer.cs" />
     <Compile Include="Config\IEndpointConfiguration.cs" />
-    <Compile Include="Impl\EventLoop.cs" />
-    <Compile Include="Impl\ExclusiveDictionary.cs" />
-    <Compile Include="Impl\IEndpointListener.cs" />
     <Compile Include="Config\IServerConfiguration.cs" />
     <Compile Include="Impl\OnBytesReceived.cs" />
-    <Compile Include="Impl\IEventLoop.cs" />
     <Compile Include="Impl\Win32\WSABUF.cs" />
     <Compile Include="Impl\Win32\WSAData.cs" />
     <Compile Include="Impl\Win32\WSAPROTOCOLCHAIN.cs" />

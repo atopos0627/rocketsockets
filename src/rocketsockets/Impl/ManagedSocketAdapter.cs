@@ -45,30 +45,6 @@ namespace rocketsockets
             OnDisconnect.Add( onClose );
         }
 
-        public Socket Bind( IEndpointConfiguration configuration )
-        {
-            try
-            {
-                var socket = new Socket( 
-                    System.Net.Sockets.AddressFamily.InterNetwork, 
-                    System.Net.Sockets.SocketType.Stream,
-                    System.Net.Sockets.ProtocolType.IP );
-                var address = configuration.AnyInterface 
-                                  ? IPAddress.Any 
-                                  : IPAddress.Parse( configuration.BindTo );
-                var endpoint = new IPEndPoint( address, configuration.Port );
-                socket.Bind( endpoint );
-                socket.Listen( 1000 );
-                return socket;
-            }
-            catch (Exception e)
-            {
-                "Binding to endpoint {0}:{1} FAILED."
-                    .ToError<ISocketServer>( configuration.BindTo ?? "0.0.0.0", configuration.Port );
-            }
-            return null;
-        }
-
         public void Close()
         {
             if( !Disposed )
