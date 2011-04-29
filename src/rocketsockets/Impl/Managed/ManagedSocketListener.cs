@@ -1,9 +1,24 @@
-﻿using System;
+﻿// /* 
+// Copyright 2008-2011 Alex Robson
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// */
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using rocketsockets.Config;
-using Symbiote.Core.Concurrency;
 using Symbiote.Core.Extensions;
 
 namespace rocketsockets.Impl
@@ -12,7 +27,7 @@ namespace rocketsockets.Impl
         : ISocketListener
     {
         public Task Listener { get; set; }
-        public IEventLoop ClientEventLoop { get; set; }
+        public IScheduler Scheduler { get; set; }
         public IServerConfiguration Configuration { get; set; }
         public Socket Connection { get; set; }
         public bool Disposed { get; set; }
@@ -24,9 +39,9 @@ namespace rocketsockets.Impl
             try
             {
                 var socket = new Socket( 
-                    System.Net.Sockets.AddressFamily.InterNetwork, 
-                    System.Net.Sockets.SocketType.Stream,
-                    System.Net.Sockets.ProtocolType.IP );
+                    AddressFamily.InterNetwork, 
+                    SocketType.Stream,
+                    ProtocolType.IP );
                 var address = configuration.AnyInterface 
                                   ? IPAddress.Any 
                                   : IPAddress.Parse( configuration.BindTo );
@@ -89,7 +104,7 @@ namespace rocketsockets.Impl
                 try
                 {
                     var client = Connection.Accept();
-                    ClientEventLoop.Enqueue( () => HandleClient( client ) );
+                    Scheduler.QueueOperation( Operation.Connect, () => HandleClient( client ) );
                 }
                 catch ( Exception ex )
                 {
@@ -114,11 +129,11 @@ namespace rocketsockets.Impl
             var task = Task.Factory.StartNew( ListenLoop );
         }
 
-        public ManagedSocketListener( IEventLoop clientLoop, IEndpointConfiguration endpoint, IServerConfiguration configuration )
+        public ManagedSocketListener( IScheduler scheduler, IEndpointConfiguration endpoint, IServerConfiguration configuration )
         {
             try 
             {
-                ClientEventLoop = clientLoop;
+                Scheduler = scheduler;
                 Configuration = configuration;
                 Connection = Bind( endpoint );
             }

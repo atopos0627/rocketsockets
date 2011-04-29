@@ -15,8 +15,6 @@
 // */
 
 using System;
-using rocketsockets.Impl;
-using Symbiote.Core.Concurrency;
 
 namespace rocketsockets.Impl
 {
@@ -24,27 +22,25 @@ namespace rocketsockets.Impl
         ISocketHandle
     {
         public string Id { get { return Connection.Id; } }
+        public IScheduler Scheduler { get; set; }
         public ISocket Connection { get; set; }
-        public IEventLoop ReadLoop { get; set; }
-        public IEventLoop WriteLoop { get; set; }
-        public IEventLoop DisposeLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public int ReadCount { get; set; }
         public int WriteCount { get; set; }
 
         public void Close() 
         {
-            WriteLoop = null;
-            ReadLoop = null;
             OnBytes = null;
             ReadCount = 0;
             WriteCount = 0;
-            DisposeLoop.Enqueue( () =>
-            {
-                Connection.Close();
-                Connection = null;
-                DisposeLoop = null;
-            } );
+            Scheduler.QueueOperation(
+                Operation.Dispose,
+                () =>
+                {
+                    Connection.Close();
+                    Connection = null;
+                    Scheduler = null;
+                } );
         }
 
         public void HandleReadException( Exception exception ) 
@@ -54,8 +50,10 @@ namespace rocketsockets.Impl
 
         public void Read()
         {
-            ReadLoop.Enqueue( () => 
-                Connection.Read( 
+            Scheduler.QueueOperation( 
+                Operation.Read, 
+                () => 
+                    Connection.Read( 
                     x => OnBytes( Id, x ), 
                     HandleReadException ) 
                 );
@@ -63,21 +61,20 @@ namespace rocketsockets.Impl
 		
         public void Write( ArraySegment<byte> segment, Action onComplete, Action<Exception> onException )
         {
-            WriteLoop.Enqueue( () => 
-                Connection.Write(
+            Scheduler.QueueOperation( 
+                Operation.Write, 
+                () => Connection.Write(
                             segment,
                             onComplete,
                             onException )
                 );
         }
 		
-        public SocketHandle( ISocket socket, IEventLoop readLoop, IEventLoop writeLoop, IEventLoop disposeLoop, OnBytesReceived onBytes )
+        public SocketHandle( ISocket socket, IScheduler scheduler, OnBytesReceived onBytes )
         {
             OnBytes = onBytes;
             Connection = socket;
-            ReadLoop = readLoop;
-            WriteLoop = writeLoop;
-            DisposeLoop = disposeLoop;
+            Scheduler = scheduler;
         }
     }
 }

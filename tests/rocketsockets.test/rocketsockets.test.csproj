@@ -48,9 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventLoopStub.cs" />
+    <Compile Include="Stubs\EventLoopStub.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocketStub.cs" />
+    <Compile Include="Stubs\ListenerStub.cs" />
+    <Compile Include="Stubs\ListenerStubFactory.cs" />
+    <Compile Include="Stubs\SchedulerStub.cs" />
+    <Compile Include="Stubs\SocketStub.cs" />
     <Compile Include="when_closing_listener.cs" />
     <Compile Include="when_connecting_to_listener.cs" />
     <Compile Include="when_reading_causes_exception.cs" />
@@ -63,6 +66,7 @@
     <Compile Include="with_endpoint_configurator.cs" />
     <Compile Include="with_listener_setup.cs" />
     <Compile Include="with_managed_socket_listener.cs" />
+    <Compile Include="with_server.cs" />
     <Compile Include="with_server_configurator.cs" />
     <Compile Include="with_socket_handle.cs" />
   </ItemGroup>

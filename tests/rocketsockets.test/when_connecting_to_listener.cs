@@ -19,7 +19,7 @@ namespace rocketsockets.test
                                                () => isClosed = true
                                                );
                                            socket.Close();
-                                       } ); 
+                                       } );
             
                                        using( var client = new TcpClient() ) 
                                        {

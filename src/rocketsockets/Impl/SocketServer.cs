@@ -18,8 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using rocketsockets.Config;
-using rocketsockets.Impl;
-using Symbiote.Core.Concurrency;
 
 namespace rocketsockets.Impl
 {
@@ -30,22 +28,17 @@ namespace rocketsockets.Impl
         public IServerConfiguration Configuration { get; set; }
         public OnConnectionReceived OnConnection { get; set; }
         public bool Running { get; set; }
-        public IEventLoop ReadEventLoop { get; set; }
-        public IEventLoop WriteEventLoop { get; set; }
-        public IEventLoop ClientEventLoop { get; set; }
-        public IEventLoop DisposeEventLoop { get; set; }
-        public IEventLoop ApplicationEventLoop { get; set; }
         public OnBytesReceived OnBytes { get; set; }
         public List<ISocketListener> Listeners { get; set; }
+        public IListenerFactory ListenerFactory { get; set; }
+        public IScheduler Scheduler { get; set; }
         
         public void OnSocket( ISocket socket ) 
         {
             var handle = new SocketHandle( 
                 socket,
-                ReadEventLoop,
-                WriteEventLoop,
-                DisposeEventLoop,
-                (x, y) => ApplicationEventLoop.Enqueue( () => OnBytes( x, y ) ) 
+                Scheduler,
+                (x, y) => Scheduler.QueueOperation( Operation.Generic, () => OnBytes( x, y ) ) 
             );
             OnConnection( handle );
         }
@@ -55,21 +48,12 @@ namespace rocketsockets.Impl
             Running = true;
             OnConnection = onConnection;
             OnBytes = onBytes;
-            ReadEventLoop = new EventLoop();
-            WriteEventLoop = new EventLoop();
-            ClientEventLoop = new EventLoop();
-            ApplicationEventLoop = new EventLoop();
-            DisposeEventLoop = new EventLoop();
-            ReadEventLoop.Start( 1 );
-            WriteEventLoop.Start( 1 );
-            ApplicationEventLoop.Start( 1 );
-            DisposeEventLoop.Start( 1 );
-            ClientEventLoop.Start( 1 );
+            Scheduler.Start();
             Listeners = Configuration
                 .Endpoints
-                .Select( x =>
+                .Select( endpoint =>
                 {
-                    ISocketListener socket = new ManagedSocketListener( ClientEventLoop, x, Configuration );
+                    var socket = ListenerFactory.CreateListener( Scheduler, endpoint, Configuration );
                     socket.ListenTo( OnSocket );
                     return socket;
                 })
@@ -79,18 +63,16 @@ namespace rocketsockets.Impl
         public void Stop()
         {
             Running = false;
-            ReadEventLoop.Stop();
-            WriteEventLoop.Stop();
-            DisposeEventLoop.Stop();
-            ClientEventLoop.Stop();
-            ApplicationEventLoop.Stop();
             Listeners.ForEach( x => x.Close() );
             Listeners.Clear();
+            Scheduler.Stop();
         }
 
-        public SocketServer( IServerConfiguration configuration )
+        public SocketServer( IServerConfiguration configuration, IListenerFactory listenerFactory, IScheduler scheduler )
         {
             Configuration = configuration;
+            Scheduler = scheduler;
+            ListenerFactory = listenerFactory;
         }
 
         public void Dispose()

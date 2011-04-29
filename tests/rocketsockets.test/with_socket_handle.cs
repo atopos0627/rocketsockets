@@ -8,17 +8,15 @@ namespace rocketsockets.test
     {
         protected static ISocketHandle handle;
         protected static SocketStub socket;
-        protected static IEventLoop loop;
         protected static OnBytesReceived onBytesReceived;
         protected static bool bytesRead;
         protected static bool underlyingSocketClosed;
 
         private Establish context = () => { 
-                                              loop = new EventLoopStub();
                                               socket = new SocketStub() { Id  = "stub" };
                                               socket.AddCloseCallback( () => underlyingSocketClosed = true );
                                               onBytesReceived = ( id, bytes ) => bytesRead = true;
-                                              handle = new SocketHandle( socket, loop, loop, loop, onBytesReceived );
+                                              handle = new SocketHandle( socket, new SchedulerStub(), onBytesReceived );
         };
     }
 }
