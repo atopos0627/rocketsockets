@@ -16,7 +16,7 @@
 
 using rocketsockets.Config;
 
-namespace rocketsockets.Impl
+namespace rocketsockets.Impl.Managed
 {
     public class ManagedListenerFactory : IListenerFactory
     {

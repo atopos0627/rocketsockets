@@ -5,6 +5,8 @@ namespace rocketsockets.test
 {
     public class EventLoopStub : IEventLoop
     {
+        public bool Running { get; set; }
+
         public void Enqueue( Action action )
         {
             action();

@@ -17,12 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets.Impl
+namespace rocketsockets.Impl.Managed
 {
     public class ManagedSocketAdapter
         : ISocket

@@ -55,20 +55,31 @@
     <Compile Include="Stubs\SchedulerStub.cs" />
     <Compile Include="Stubs\SocketStub.cs" />
     <Compile Include="when_closing_listener.cs" />
-    <Compile Include="when_connecting_to_listener.cs" />
+    <Compile Include="Config\when_configuring_as_part_of_Symbiote.cs" />
+    <Compile Include="Config\when_configuring_standalone.cs" />
+    <Compile Include="Managed\when_connecting_to_listener.cs" />
+    <Compile Include="Managed\when_getting_listener_from_managed_factory.cs" />
+    <Compile Include="Managed\when_reading_and_writing_to_managed_socket.cs" />
     <Compile Include="when_reading_causes_exception.cs" />
     <Compile Include="when_reading_from_socket_handle.cs" />
-    <Compile Include="when_using_default_endpoint.cs" />
-    <Compile Include="when_using_endpoint_configurator.cs" />
+    <Compile Include="when_scheduling_operations.cs" />
+    <Compile Include="when_starting_server.cs" />
+    <Compile Include="when_stopping_server.cs" />
+    <Compile Include="when_testing_server_interactions.cs" />
+    <Compile Include="with_event_scheduler.cs" />
+    <Compile Include="Config\when_using_default_endpoint.cs" />
+    <Compile Include="Config\when_using_endpoint_configurator.cs" />
     <Compile Include="when_write_fails.cs" />
     <Compile Include="when_write_succeeds.cs" />
     <Compile Include="with_default_server_setup.cs" />
-    <Compile Include="with_endpoint_configurator.cs" />
+    <Compile Include="Config\with_endpoint_configurator.cs" />
     <Compile Include="with_listener_setup.cs" />
-    <Compile Include="with_managed_socket_listener.cs" />
+    <Compile Include="Managed\with_managed_listener_factory.cs" />
+    <Compile Include="Managed\with_managed_socket_adapter.cs" />
+    <Compile Include="Managed\with_managed_socket_listener.cs" />
     <Compile Include="with_server.cs" />
-    <Compile Include="with_server_configurator.cs" />
-    <Compile Include="with_socket_handle.cs" />
+    <Compile Include="Config\with_server_configurator.cs" />
+    <Compile Include="Managed\with_socket_handle.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\rocketsockets\rocketsockets.csproj">
@@ -76,6 +87,7 @@
       <Name>rocketsockets</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

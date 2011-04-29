@@ -52,6 +52,7 @@
     <Compile Include="Impl\ISocketListener.cs" />
     <Compile Include="Impl\Managed\ManagedListenerFactory.cs" />
     <Compile Include="Impl\Managed\ManagedSocketListener.cs" />
+    <Compile Include="Impl\OnConnectionReceived.cs" />
     <Compile Include="Impl\Operation.cs" />
     <Compile Include="Impl\Win32\AddressFamily.cs" />
     <Compile Include="Impl\Win32\fd_set.cs" />

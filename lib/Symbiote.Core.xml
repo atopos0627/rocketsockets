@@ -5641,6 +5641,27 @@
             </summary>
             <value><c>true</c> if the written enum text will be camel case; otherwise, <c>false</c>.</value>
         </member>
+        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Enqueue(System.Action)">
+            <summary>
+            Enqueue an action to take place on one of the event loop's threads
+            </summary>
+        </member>
+        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Start(System.Int32)">
+            <summary>
+            Starts the event loop with a specific number of threads to
+            dequeue and execute queued actions
+            </summary>
+        </member>
+        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Stop">
+            <summary>
+            Stops processing of enqueued actions
+            </summary>
+        </member>
+        <member name="P:Symbiote.Core.Concurrency.IEventLoop.Running">
+            <summary>
+            Indicates whether or not the loop is currently dequeueing and executing actions
+            </summary>
+        </member>
         <member name="T:ProtoBuf.Meta.TypeModel">
             <summary>
             Provides protobuf serialization support for a number of types
@@ -8688,22 +8709,6 @@
             <value>
             	<c>true</c> if this <see cref="T:Newtonsoft.Json.JsonConverter"/> can write JSON; otherwise, <c>false</c>.
             </value>
-        </member>
-        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Enqueue(System.Action)">
-            <summary>
-            Enqueue an action to take place on one of the event loop's threads
-            </summary>
-        </member>
-        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Start(System.Int32)">
-            <summary>
-            Starts the event loop with a specific number of threads to
-            dequeue and execute queued actions
-            </summary>
-        </member>
-        <member name="M:Symbiote.Core.Concurrency.IEventLoop.Stop">
-            <summary>
-            Stops processing of enqueued actions
-            </summary>
         </member>
     </members>
 </doc>

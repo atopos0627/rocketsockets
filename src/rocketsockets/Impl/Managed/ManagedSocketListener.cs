@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
-namespace rocketsockets.Impl
+namespace rocketsockets.Impl.Managed
 {
     public class ManagedSocketListener
         : ISocketListener
@@ -33,6 +33,7 @@ namespace rocketsockets.Impl
         public bool Disposed { get; set; }
         public bool Listening { get; set; }
         public Action<ISocket> OnSocket { get; set; }
+        public IAsyncResult WaitHandle { get; set; }
 
         public Socket Bind( IEndpointConfiguration configuration )
         {
@@ -67,8 +68,13 @@ namespace rocketsockets.Impl
                 Listening = false;
                 try
                 {
+                    if( WaitHandle != null )
+                        WaitHandle.AsyncWaitHandle.Dispose();
+
                     if( Listener != null && Listener.Status == TaskStatus.Running )
+                    {
                         Listener.Dispose();
+                    }
 
                     if( Connection != null )
                     {
@@ -99,25 +105,33 @@ namespace rocketsockets.Impl
         
         public void ListenLoop()
         {
-            while ( Listening )
+            try
             {
-                try
+                Connection.BeginAccept( x =>
                 {
-                    var client = Connection.Accept();
-                    Scheduler.QueueOperation( Operation.Connect, () => HandleClient( client ) );
+                    try
+                    {
+                        var client = Connection.EndAccept( x );
+                        Scheduler.QueueOperation( Operation.Connect, () => HandleClient( client ) );
+                    }
+                    finally
+                    {
+                        if( Listening )
+                            ListenLoop();   
+                    }
+                }, null);
+            }
+            catch ( Exception ex )
+            {
+                if( Connection != null )
+                {
+                    "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
+                        .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
                 }
-                catch ( Exception ex )
+                else
                 {
-                    if( Connection != null )
-                    {
-                        "FAILURE while attempting to listen to socket {0}. \r\n\t{1}"
-                            .ToError<ISocketServer>( Connection.LocalEndPoint.ToString(), ex );
-                    }
-                    else
-                    {
-                        "An exception occurred in Managed Socket Listener; probably due to unexpected shut-down. \r\n\t{0}"
-                            .ToError<ISocketServer>( ex );
-                    }
+                    "An exception occurred in Managed Socket Listener; probably due to unexpected shut-down. \r\n\t{0}"
+                        .ToError<ISocketServer>( ex );
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Threading;
 using Machine.Specifications;
 
 namespace rocketsockets.test
@@ -9,8 +10,10 @@ namespace rocketsockets.test
         static bool wasListening;
         static bool isClosed;
         static ISocket socket;
+        static ManualResetEvent waitHandle;
 
         private Because of = () => { 
+                                       waitHandle = new ManualResetEvent( false );
                                        listener.ListenTo( x => 
                                        {
                                            connectionReceived = true;
@@ -18,12 +21,14 @@ namespace rocketsockets.test
                                            x.AddCloseCallback( 
                                                () => isClosed = true
                                                );
+                                           waitHandle.Set();
                                            socket.Close();
                                        } );
-            
+
                                        using( var client = new TcpClient() ) 
                                        {
                                            client.Connect( "localhost", 8998 );
+                                           waitHandle.WaitOne();
                                            client.Close();
                                        }
 
