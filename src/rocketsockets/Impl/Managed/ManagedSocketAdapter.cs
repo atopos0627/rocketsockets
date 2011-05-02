@@ -143,7 +143,7 @@ namespace rocketsockets.Impl.Managed
                         Configuration.ReadBufferSize, 
                         OnRead, 
                         null );
-                }
+                }   
             }
             catch( Exception ex )
             {
@@ -160,7 +160,7 @@ namespace rocketsockets.Impl.Managed
                 OnException = onException;
                 WriteHandle = SocketStream.BeginWrite( 
                     bytes.Array, 
-                    bytes.Offset, 
+                    bytes.Offset,   
                     bytes.Count, 
                     OnWrite, 
                     null );
