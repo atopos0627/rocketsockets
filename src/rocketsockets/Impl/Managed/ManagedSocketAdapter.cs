@@ -51,6 +51,9 @@ namespace rocketsockets.Impl.Managed
                 Disposed = true;
                 try
                 {
+                    if( WriteHandle != null && !WriteHandle.IsCompleted )
+                        WriteHandle.AsyncWaitHandle.WaitOne();
+
                     if( SocketStream != null )
                     {
                         SocketStream.Flush();
@@ -94,7 +97,9 @@ namespace rocketsockets.Impl.Managed
                 if ( !Disposed )
                 {
                     var read = SocketStream.EndRead( result );
-                    OnBytes( new ArraySegment<byte>( Bytes, 0, read ));
+                    var bytes = new byte[ read ];
+                    Buffer.BlockCopy( Bytes, 0, bytes, 0, read );
+                    OnBytes( new ArraySegment<byte>( bytes , 0, read ));
                 }
             }
             catch ( Exception ex )
@@ -114,10 +119,6 @@ namespace rocketsockets.Impl.Managed
                     SocketStream.EndWrite( result );
                     SocketStream.Flush();
                     OnWriteCompleted();
-                }
-                else if(WriteHandle != null && WriteHandle.AsyncWaitHandle != null )
-                {
-                    WriteHandle.AsyncWaitHandle.Dispose();
                 }
             }
             catch( Exception ex )

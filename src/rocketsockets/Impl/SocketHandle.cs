@@ -34,7 +34,7 @@ namespace rocketsockets.Impl
             ReadCount = 0;
             WriteCount = 0;
             Scheduler.QueueOperation(
-                Operation.Dispose,
+                Operation.Write,
                 () =>
                 {
                     Connection.Close();

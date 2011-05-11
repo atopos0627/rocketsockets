@@ -137,7 +137,6 @@ namespace rocketsockets.Impl.Win32
                 }
                 catch( Exception ex ) 
                 {
-                    Console.WriteLine( "poop" );
                 }
                 finally
                 {
@@ -283,11 +282,9 @@ namespace rocketsockets.Impl.Win32
         {
             try 
             {
-                //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
                 Configuration = configuration;
                 Connection = connection;
                 Bytes = new byte[configuration.ReadBufferSize];
-                //SocketStream = new NetworkStream( connection );
                 OnDisconnect = new List<Action>();
             } 
             catch (Exception ex) 
@@ -300,11 +297,9 @@ namespace rocketsockets.Impl.Win32
         {
             try 
             {
-                //Console.WriteLine( "Created {1}: {0}", Total ++, DateTime.UtcNow.TimeOfDay.TotalMilliseconds );
                 Configuration = configuration;
                 Connection = Bind( endpoint );
                 Bytes = new byte[configuration.ReadBufferSize];
-                //SocketStream = new NetworkStream( Connection );
                 OnDisconnect = new List<Action>();
             } 
             catch (Exception ex) 
