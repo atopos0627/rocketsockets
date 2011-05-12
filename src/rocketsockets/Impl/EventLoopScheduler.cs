@@ -25,24 +25,30 @@ namespace rocketsockets.Impl
     public class EventLoopScheduler : IScheduler
     {
         public Dictionary<Operation, IEventLoop> Loops { get; set; }
+        public IEventLoop Loop { get; set; }
+
 
         public void QueueOperation( Operation type, Action operation )
         {
             Loops[type].Enqueue( operation );
+            //Loop.Enqueue( operation );
         }
 
         public void Start()
         {
+            //Loop.Start( 1 );
             Loops.ForEach( x => x.Value.Start( 1 ) );
         }
 
         public void Stop()
         {
+            //Loop.Stop();
             Loops.ForEach( x => x.Value.Stop() );
         }
 
         public EventLoopScheduler() 
         {
+            Loop = new EventLoop();
             Loops = new Dictionary<Operation, IEventLoop>();
             Enum.GetValues( typeof( Operation ) )
                 .OfType<Operation>()
