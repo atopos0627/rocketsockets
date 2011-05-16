@@ -14,6 +14,7 @@
 // limitations under the License.
 // */
 
+using System;
 using System.Collections.Generic;
 
 namespace rocketsockets.Config
@@ -22,8 +23,10 @@ namespace rocketsockets.Config
         IConfigureServer,
         IServerConfiguration
     {
+        public string CertPath { get; set; }
         public IList<IEndpointConfiguration> Endpoints { get; set; }
         public int ReadBufferSize { get; set; }
+        public bool Secure { get; set; }
         public int WriteBufferSize { get; set; }
 
         public void AddEndPoint( IEndpointConfiguration endpoint )

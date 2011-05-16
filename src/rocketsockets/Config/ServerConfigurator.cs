@@ -31,6 +31,13 @@ namespace rocketsockets.Config
             return this;
         }
 
+        public IConfigurator SecureWithCertFrom( string certPath ) 
+        {
+            Configuration.Secure = true;
+            Configuration.CertPath = certPath;
+            return this;
+        }
+
         public IConfigurator UseDefaultEndpoint()
         {
             var endpoint = new EndpointConfiguration( "default" )

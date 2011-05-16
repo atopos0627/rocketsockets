@@ -20,8 +20,10 @@ namespace rocketsockets.Config
 {
     public interface IServerConfiguration
     {
+        string CertPath { get; set; }
         IList<IEndpointConfiguration> Endpoints { get; }
         int ReadBufferSize { get; set; }
+        bool Secure { get; set; }
         int WriteBufferSize { get; set; }
     }
 }

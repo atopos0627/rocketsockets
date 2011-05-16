@@ -27,6 +27,11 @@ namespace rocketsockets.Config
         IConfigurator AddEndpoint( string name, Action<IConfigureEndpoint> configurator );
         
         /// <summary>
+        /// Specifies an certificate for use on the server to create a secure socket connection
+        /// </summary>
+        IConfigurator SecureWithCertFrom( string certPath );
+
+        /// <summary>
         /// The default includes all network interfaces on port 8998.
         /// </summary>
         IConfigurator UseDefaultEndpoint();

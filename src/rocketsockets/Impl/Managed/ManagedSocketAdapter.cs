@@ -17,7 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using rocketsockets.Config;
 using Symbiote.Core.Extensions;
 
@@ -52,7 +55,14 @@ namespace rocketsockets.Impl.Managed
                 try
                 {
                     if( WriteHandle != null && !WriteHandle.IsCompleted )
+                    {
                         WriteHandle.AsyncWaitHandle.WaitOne();
+                        if( OnWriteCompleted != null ) 
+                        {
+                            OnWriteCompleted();
+                            OnWriteCompleted = null;
+                        }
+                    }
 
                     if( SocketStream != null )
                     {
@@ -90,6 +100,46 @@ namespace rocketsockets.Impl.Managed
             }
         }
 
+        public Stream GetStream( Socket connection ) 
+        {
+            var networkStream = new NetworkStream( connection );
+            if( Configuration.Secure )
+            {
+                var sslStream = new SslStream( networkStream, false, CheckCert );
+                sslStream.AuthenticateAsServer( 
+                    new X509Certificate2( Configuration.CertPath ),
+                    false,
+                    SslProtocols.Tls,
+                    false );
+                return sslStream;
+            }
+            else
+            {
+                return networkStream;
+            }
+        }
+
+        public bool CheckCert( object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslpolicyerrors )
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Loads the certificate specified by the configuration file path.
+        /// Does NOT use the cert store on windows. Don't make the path accessible by anything
+        /// other than the host process.
+        /// </summary>
+        public X509Certificate LoadCert( object sender, string targethost, X509CertificateCollection localcertificates, X509Certificate remotecertificate, string[] acceptableissuers )
+        {
+            return new X509Certificate( Configuration.CertPath );
+        }
+
+        // For SSL, there is no client cert. Always returns true.
+        public bool ValidateClient( object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslpolicyerrors )
+        {
+            return true;
+        }
+
         public void OnRead( IAsyncResult result )
         {
             try
@@ -118,7 +168,6 @@ namespace rocketsockets.Impl.Managed
                 {
                     SocketStream.EndWrite( result );
                     SocketStream.Flush();
-                    OnWriteCompleted();
                 }
             }
             catch( Exception ex )
@@ -128,6 +177,8 @@ namespace rocketsockets.Impl.Managed
                 if ( OnException != null )
                     OnException( ex );
             }
+            if( OnWriteCompleted != null )
+                OnWriteCompleted();
         }
 
         public void Read( Action<ArraySegment<byte>> onBytes, Action<Exception> onException )
@@ -184,8 +235,10 @@ namespace rocketsockets.Impl.Managed
             Configuration = configuration;
             Connection = connection;
             Bytes = new byte[configuration.ReadBufferSize];
-            SocketStream = new NetworkStream( connection );
             OnDisconnect = new List<Action>();
+
+
+            SocketStream = GetStream( connection );
         }
         
         public void Dispose()
